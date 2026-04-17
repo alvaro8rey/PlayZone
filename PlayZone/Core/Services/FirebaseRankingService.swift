@@ -30,12 +30,16 @@ final class FirebaseRankingService: RankingService {
     func save(_ entry: RankingEntry) async throws {
         let isScore = GameType(rawValue: entry.game)?.rankingType == .score
 
-        // Find existing entry for this player+game+difficulty
-        let existing = try await db.collection(col)
-            .whereField("playerName", isEqualTo: entry.playerName)
+        // Query only by game+difficulty (no composite index needed),
+        // then filter by playerName in Swift to find the existing document.
+        let snap = try await db.collection(col)
             .whereField("game",       isEqualTo: entry.game)
             .whereField("difficulty", isEqualTo: entry.difficulty)
             .getDocuments()
+
+        let playerDocs = snap.documents.filter {
+            ($0.data()["playerName"] as? String) == entry.playerName
+        }
 
         let payload: [String: Any] = [
             "playerName": entry.playerName,
@@ -45,10 +49,14 @@ final class FirebaseRankingService: RankingService {
             "date":       Timestamp(date: entry.date)
         ]
 
-        if let doc = existing.documents.first {
-            let currentValue = doc.data()["value"] as? Int ?? 0
+        if let best = playerDocs.first {
+            let currentValue = best.data()["value"] as? Int ?? 0
             let isBetter = isScore ? entry.value > currentValue : entry.value < currentValue
-            if isBetter { try await doc.reference.setData(payload) }
+            if isBetter {
+                // Update best document and delete any extra duplicates
+                try await best.reference.setData(payload)
+                for dup in playerDocs.dropFirst() { try await dup.reference.delete() }
+            }
         } else {
             try await db.collection(col).document(entry.id).setData(payload)
         }
@@ -75,10 +83,17 @@ final class FirebaseRankingService: RankingService {
                                 value: val, date: ts.dateValue())
         }
 
-        let sorted = game.rankingType == .score
-            ? entries.sorted { $0.value > $1.value }
-            : entries.sorted { $0.value < $1.value }
+        // Deduplicate: keep only the best entry per player
+        let deduped = Dictionary(grouping: entries, by: \.playerName)
+            .values
+            .compactMap { group -> RankingEntry? in
+                game.rankingType == .score
+                    ? group.max(by: { $0.value < $1.value })
+                    : group.min(by: { $0.value > $1.value })
+            }
 
-        return sorted
+        return game.rankingType == .score
+            ? deduped.sorted { $0.value > $1.value }
+            : deduped.sorted { $0.value < $1.value }
     }
 }
