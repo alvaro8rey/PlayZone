@@ -7,7 +7,7 @@ protocol RankingService: AnyObject {
     func fetch(game: GameType, difficulty: Difficulty) async throws -> [RankingEntry]
 }
 
-// MARK: - Local (UserDefaults) — default implementation, no Firebase needed
+// MARK: - Local (UserDefaults)
 
 final class LocalRankingService: RankingService {
     static let shared = LocalRankingService()
@@ -29,15 +29,28 @@ final class LocalRankingService: RankingService {
 
     func save(_ entry: RankingEntry) async throws {
         var entries = load()
-        entries.append(entry)
+        let gameType = GameType(rawValue: entry.game)
+        let isScore = gameType?.rankingType == .score
+
+        if let idx = entries.firstIndex(where: {
+            $0.playerName == entry.playerName &&
+            $0.game == entry.game &&
+            $0.difficulty == entry.difficulty
+        }) {
+            let isBetter = isScore
+                ? entry.value > entries[idx].value
+                : entry.value < entries[idx].value
+            if isBetter { entries[idx] = entry }
+        } else {
+            entries.append(entry)
+        }
         persist(entries)
     }
 
     func fetch(game: GameType, difficulty: Difficulty) async throws -> [RankingEntry] {
         let filtered = load().filter { $0.game == game.rawValue && $0.difficulty == difficulty.rawValue }
-        let sorted = game.rankingType == .time
+        return game.rankingType == .time
             ? filtered.sorted { $0.value < $1.value }
             : filtered.sorted { $0.value > $1.value }
-        return Array(sorted.prefix(10))
     }
 }

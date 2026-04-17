@@ -28,14 +28,30 @@ final class FirebaseRankingService: RankingService {
     private let col = "rankings"
 
     func save(_ entry: RankingEntry) async throws {
-        let ref = db.collection(col).document(entry.id)
-        try await ref.setData([
+        let isScore = GameType(rawValue: entry.game)?.rankingType == .score
+
+        // Find existing entry for this player+game+difficulty
+        let existing = try await db.collection(col)
+            .whereField("playerName", isEqualTo: entry.playerName)
+            .whereField("game",       isEqualTo: entry.game)
+            .whereField("difficulty", isEqualTo: entry.difficulty)
+            .getDocuments()
+
+        let payload: [String: Any] = [
             "playerName": entry.playerName,
             "game":       entry.game,
             "difficulty": entry.difficulty,
             "value":      entry.value,
             "date":       Timestamp(date: entry.date)
-        ])
+        ]
+
+        if let doc = existing.documents.first {
+            let currentValue = doc.data()["value"] as? Int ?? 0
+            let isBetter = isScore ? entry.value > currentValue : entry.value < currentValue
+            if isBetter { try await doc.reference.setData(payload) }
+        } else {
+            try await db.collection(col).document(entry.id).setData(payload)
+        }
     }
 
     func fetch(game: GameType, difficulty: Difficulty) async throws -> [RankingEntry] {
@@ -63,6 +79,6 @@ final class FirebaseRankingService: RankingService {
             ? entries.sorted { $0.value > $1.value }
             : entries.sorted { $0.value < $1.value }
 
-        return Array(sorted.prefix(10))
+        return sorted
     }
 }

@@ -6,6 +6,7 @@ struct RankingView: View {
     @State private var entries: [RankingEntry] = []
     @State private var isLoading = false
     @Environment(\.rankingService) private var rankingService
+    @AppStorage("playerName") private var currentPlayer = ""
 
     var body: some View {
         ZStack {
@@ -14,42 +15,13 @@ struct RankingView: View {
                 .ignoresSafeArea()
 
             VStack(spacing: 0) {
-                // Difficulty Picker
-                HStack(spacing: 0) {
-                    ForEach(Difficulty.allCases) { diff in
-                        Button {
-                            selectedDifficulty = diff
-                            Task { await loadRanking() }
-                        } label: {
-                            Text(diff.rawValue)
-                                .font(.subheadline.bold())
-                                .foregroundStyle(selectedDifficulty == diff ? .white : Color(hex: "64748B"))
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, 10)
-                                .background(
-                                    selectedDifficulty == diff
-                                    ? LinearGradient(colors: game.gradient, startPoint: .leading, endPoint: .trailing)
-                                    : LinearGradient(colors: [Color.clear], startPoint: .leading, endPoint: .trailing)
-                                )
-                        }
-                    }
-                }
-                .background(Color(hex: "1E293B"))
-                .clipShape(RoundedRectangle(cornerRadius: 12))
-                .padding(.horizontal, 16)
-                .padding(.top, 12)
+                difficultyPicker
+                    .padding(.horizontal, 16)
+                    .padding(.top, 12)
 
-                // Info row
-                HStack {
-                    Image(systemName: game.rankingType == .time ? "timer" : "star.fill")
-                    Text(game.rankingLabel)
-                    Spacer()
-                    Text("Top 10")
-                }
-                .font(.caption)
-                .foregroundStyle(Color(hex: "64748B"))
-                .padding(.horizontal, 20)
-                .padding(.top, 8)
+                infoRow
+                    .padding(.horizontal, 20)
+                    .padding(.top, 8)
 
                 if isLoading {
                     Spacer()
@@ -66,6 +38,49 @@ struct RankingView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbarColorScheme(.dark, for: .navigationBar)
         .task { await loadRanking() }
+    }
+
+    // MARK: - Difficulty Picker
+
+    private var difficultyPicker: some View {
+        HStack(spacing: 0) {
+            ForEach(Difficulty.allCases) { diff in
+                Button {
+                    selectedDifficulty = diff
+                    Task { await loadRanking() }
+                } label: {
+                    Text(diff.rawValue)
+                        .font(.subheadline.bold())
+                        .foregroundStyle(selectedDifficulty == diff ? .white : Color(hex: "64748B"))
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 10)
+                        .background(
+                            selectedDifficulty == diff
+                            ? LinearGradient(colors: game.gradient, startPoint: .leading, endPoint: .trailing)
+                            : LinearGradient(colors: [Color.clear], startPoint: .leading, endPoint: .trailing)
+                        )
+                }
+            }
+        }
+        .background(Color(hex: "1E293B"))
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+    }
+
+    // MARK: - Info Row
+
+    private var infoRow: some View {
+        HStack {
+            Image(systemName: game.rankingType == .time ? "timer" : "star.fill")
+            Text(game.rankingLabel)
+            Spacer()
+            if let pos = myPosition {
+                Text("Tu posición: #\(pos)")
+                    .fontWeight(.semibold)
+                    .foregroundStyle(game.gradient.first ?? .white)
+            }
+        }
+        .font(.caption)
+        .foregroundStyle(Color(hex: "64748B"))
     }
 
     // MARK: - Empty
@@ -91,19 +106,46 @@ struct RankingView: View {
     // MARK: - List
 
     private var rankingList: some View {
-        ScrollView {
-            LazyVStack(spacing: 10) {
-                ForEach(Array(entries.enumerated()), id: \.element.id) { index, entry in
-                    RankingRow(position: index + 1, entry: entry, game: game)
+        ScrollViewReader { proxy in
+            ScrollView {
+                LazyVStack(spacing: 10) {
+                    ForEach(Array(entries.enumerated()), id: \.element.id) { index, entry in
+                        RankingRow(
+                            position: index + 1,
+                            entry: entry,
+                            game: game,
+                            isCurrentPlayer: entry.playerName == currentPlayer
+                        )
+                        .id(entry.id)
+                    }
                 }
+                .padding(.horizontal, 16)
+                .padding(.top, 12)
+                .padding(.bottom, 32)
             }
-            .padding(.horizontal, 16)
-            .padding(.top, 12)
-            .padding(.bottom, 32)
+            .onAppear {
+                scrollToPlayer(proxy: proxy)
+            }
+            .onChange(of: entries) { _, _ in
+                scrollToPlayer(proxy: proxy)
+            }
         }
     }
 
-    // MARK: - Load
+    // MARK: - Helpers
+
+    private var myPosition: Int? {
+        guard let idx = entries.firstIndex(where: { $0.playerName == currentPlayer })
+        else { return nil }
+        return idx + 1
+    }
+
+    private func scrollToPlayer(proxy: ScrollViewProxy) {
+        guard let entry = entries.first(where: { $0.playerName == currentPlayer }) else { return }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            withAnimation { proxy.scrollTo(entry.id, anchor: .center) }
+        }
+    }
 
     private func loadRanking() async {
         isLoading = true
@@ -118,10 +160,10 @@ struct RankingRow: View {
     let position: Int
     let entry: RankingEntry
     let game: GameType
+    let isCurrentPlayer: Bool
 
     var body: some View {
         HStack(spacing: 14) {
-            // Medal
             ZStack {
                 Circle()
                     .fill(medalColor)
@@ -131,11 +173,21 @@ struct RankingRow: View {
                     .foregroundStyle(.white)
             }
 
-            // Name + date
             VStack(alignment: .leading, spacing: 2) {
-                Text(entry.playerName)
-                    .font(.headline)
-                    .foregroundStyle(.white)
+                HStack(spacing: 6) {
+                    Text(entry.playerName)
+                        .font(.headline)
+                        .foregroundStyle(.white)
+                    if isCurrentPlayer {
+                        Text("TÚ")
+                            .font(.caption2.bold())
+                            .foregroundStyle(.black)
+                            .padding(.horizontal, 5)
+                            .padding(.vertical, 2)
+                            .background(.yellow)
+                            .clipShape(Capsule())
+                    }
+                }
                 Text(entry.date.formatted(date: .abbreviated, time: .omitted))
                     .font(.caption)
                     .foregroundStyle(Color(hex: "64748B"))
@@ -143,15 +195,18 @@ struct RankingRow: View {
 
             Spacer()
 
-            // Value
             Text(entry.formattedValue)
                 .font(.title3.bold().monospacedDigit())
                 .foregroundStyle(game.gradient.first ?? .white)
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 12)
-        .background(Color(hex: "1E293B"))
+        .background(isCurrentPlayer ? Color(hex: "1E3A5F") : Color(hex: "1E293B"))
         .clipShape(RoundedRectangle(cornerRadius: 14))
+        .overlay(
+            RoundedRectangle(cornerRadius: 14)
+                .stroke(isCurrentPlayer ? Color.yellow.opacity(0.5) : Color.clear, lineWidth: 1.5)
+        )
         .shadow(color: .black.opacity(0.2), radius: 4, y: 2)
     }
 
@@ -160,7 +215,7 @@ struct RankingRow: View {
         case 1: return Color(hex: "EAB308")
         case 2: return Color(hex: "94A3B8")
         case 3: return Color(hex: "B45309")
-        default: return Color(hex: "334155")
+        default: return isCurrentPlayer ? Color(hex: "1E40AF") : Color(hex: "334155")
         }
     }
 
