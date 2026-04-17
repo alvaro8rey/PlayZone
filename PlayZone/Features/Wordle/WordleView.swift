@@ -35,8 +35,6 @@ struct WordleView: View {
                         .frame(width: 1, height: 1)
                         .opacity(0.001)
                 }
-                .contentShape(Rectangle())
-                .onTapGesture { keyboardFocused = true }
             }
         }
         .navigationTitle("Wordle · \(difficulty.rawValue) (\(game.wordLength) letras)")
@@ -84,12 +82,21 @@ struct WordleView: View {
             ForEach(0..<game.maxAttempts, id: \.self) { row in
                 HStack(spacing: 8) {
                     ForEach(0..<game.wordLength, id: \.self) { col in
+                        let isCurrentRow = row == game.currentRow
+                        let isSelected = isCurrentRow && col == game.selectedCol
                         TileView(
                             letter: letter(row: row, col: col),
                             state: tileState(row: row, col: col),
                             revealed: row < game.currentRow,
-                            revealDelay: Double(col) * 0.1
+                            revealDelay: Double(col) * 0.1,
+                            isSelected: isSelected
                         )
+                        .onTapGesture {
+                            if isCurrentRow && game.state == .playing {
+                                game.selectCol(col)
+                                keyboardFocused = true
+                            }
+                        }
                     }
                 }
                 .modifier(ShakeEffect(trigger: shakeRow == row))
@@ -99,10 +106,7 @@ struct WordleView: View {
 
     private func letter(row: Int, col: Int) -> Character? {
         if row < game.guesses.count { return game.guesses[row][col] }
-        if row == game.currentRow {
-            let chars = Array(game.currentGuess)
-            return col < chars.count ? chars[col] : nil
-        }
+        if row == game.currentRow { return game.currentTiles[col] }
         return nil
     }
 
@@ -117,7 +121,7 @@ struct WordleView: View {
         guard game.state == .playing else { return }
         if let ch = key {
             game.addLetter(Character(String(ch).lowercased()))
-            if game.currentGuess.count == game.wordLength {
+            if game.isCurrentGuessFull {
                 _ = game.submitGuess()
             }
         } else {
@@ -139,12 +143,21 @@ struct WordleView: View {
 
 // MARK: - Native keyboard bridge
 
+private class BackspaceTextField: UITextField {
+    var onBackspace: (() -> Void)?
+    override func deleteBackward() {
+        onBackspace?()
+        super.deleteBackward()
+    }
+}
+
 struct NativeKeyboardInput: UIViewRepresentable {
     @Binding var focused: Bool
     let onKey: (Character?) -> Void
 
     func makeUIView(context: Context) -> UITextField {
-        let tf = UITextField()
+        let tf = BackspaceTextField()
+        tf.onBackspace = { context.coordinator.onKey(nil) }
         tf.delegate = context.coordinator
         tf.autocorrectionType = .no
         tf.autocapitalizationType = .allCharacters
@@ -174,12 +187,10 @@ struct NativeKeyboardInput: UIViewRepresentable {
         func textField(_ textField: UITextField,
                        shouldChangeCharactersIn range: NSRange,
                        replacementString string: String) -> Bool {
-            if string.isEmpty {
-                onKey(nil)
-            } else {
-                for scalar in string.unicodeScalars where scalar.properties.isAlphabetic {
-                    onKey(Character(scalar))
-                }
+            // Backspace is handled by BackspaceTextField.deleteBackward()
+            guard !string.isEmpty else { return false }
+            for scalar in string.unicodeScalars where scalar.properties.isAlphabetic {
+                onKey(Character(scalar))
             }
             return false
         }
@@ -193,13 +204,17 @@ struct TileView: View {
     let state: LetterState
     let revealed: Bool
     let revealDelay: Double
+    var isSelected: Bool = false
 
     var body: some View {
         ZStack {
             RoundedRectangle(cornerRadius: 6)
                 .fill(bgColor)
                 .animation(.easeInOut(duration: 0.25).delay(revealDelay), value: revealed)
-                .overlay(RoundedRectangle(cornerRadius: 6).stroke(borderColor, lineWidth: 2))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 6)
+                        .stroke(borderColor, lineWidth: isSelected ? 2.5 : 2)
+                )
 
             if let ch = letter {
                 Text(String(ch).uppercased())
@@ -222,7 +237,10 @@ struct TileView: View {
     }
 
     private var borderColor: Color {
-        if !revealed { return letter == nil ? Color(hex: "334155") : Color(hex: "94A3B8") }
+        if !revealed {
+            if isSelected { return .white }
+            return letter == nil ? Color(hex: "334155") : Color(hex: "94A3B8")
+        }
         return .clear
     }
 }

@@ -14,17 +14,19 @@ final class WordleGame {
     private(set) var targetWord: String = ""
     private(set) var guesses: [[Character]] = []
     private(set) var letterStates: [[LetterState]] = []
-    private(set) var currentGuess: String = ""
+    private(set) var currentTiles: [Character?]
+    private(set) var selectedCol: Int = 0
     private(set) var keyboardState: [Character: LetterState] = [:]
     private(set) var state: WordleState = .playing
     private(set) var isLoading = true
     private(set) var score: Int = 0
 
     var currentRow: Int { guesses.count }
-    var attemptsLeft: Int { maxAttempts - currentRow }
+    var isCurrentGuessFull: Bool { currentTiles.allSatisfy { $0 != nil } }
 
     init(difficulty: Difficulty) {
         self.wordLength = difficulty.wordleLength
+        self.currentTiles = Array(repeating: nil, count: difficulty.wordleLength)
         Task { await loadWord() }
     }
 
@@ -36,30 +38,41 @@ final class WordleGame {
     }
 
     func addLetter(_ ch: Character) {
-        guard state == .playing, currentGuess.count < wordLength else { return }
-        currentGuess.append(ch)
+        guard state == .playing else { return }
+        currentTiles[selectedCol] = ch
+        if selectedCol < wordLength - 1 {
+            selectedCol += 1
+        }
     }
 
     func deleteLetter() {
-        guard state == .playing, !currentGuess.isEmpty else { return }
-        currentGuess.removeLast()
+        guard state == .playing else { return }
+        if currentTiles[selectedCol] != nil {
+            currentTiles[selectedCol] = nil
+        } else if selectedCol > 0 {
+            selectedCol -= 1
+            currentTiles[selectedCol] = nil
+        }
+    }
+
+    func selectCol(_ col: Int) {
+        guard state == .playing, col >= 0, col < wordLength else { return }
+        selectedCol = col
     }
 
     func submitGuess() -> Bool {
-        guard state == .playing, currentGuess.count == wordLength else { return false }
-        let guess = Array(currentGuess.lowercased())
+        guard state == .playing, isCurrentGuessFull else { return false }
+        let guess = currentTiles.compactMap { $0 }
+        guard guess.count == wordLength else { return false }
+
         let target = Array(targetWord)
         var states = Array(repeating: LetterState.absent, count: wordLength)
         var remaining = target
 
-        // First pass: correct
-        for i in 0..<wordLength {
-            if guess[i] == target[i] {
-                states[i] = .correct
-                remaining[i] = "_"
-            }
+        for i in 0..<wordLength where guess[i] == target[i] {
+            states[i] = .correct
+            remaining[i] = "_"
         }
-        // Second pass: present
         for i in 0..<wordLength where states[i] != .correct {
             if let j = remaining.firstIndex(of: guess[i]) {
                 states[i] = .present
@@ -71,15 +84,16 @@ final class WordleGame {
         letterStates.append(states)
 
         for (ch, st) in zip(guess, states) {
-            let current = keyboardState[ch]
-            if current != .correct {
-                if st == .correct || current == nil || (st == .present && current == .absent) {
+            let cur = keyboardState[ch]
+            if cur != .correct {
+                if st == .correct || cur == nil || (st == .present && cur == .absent) {
                     keyboardState[ch] = st
                 }
             }
         }
 
-        currentGuess = ""
+        currentTiles = Array(repeating: nil, count: wordLength)
+        selectedCol = 0
 
         if states.allSatisfy({ $0 == .correct }) {
             state = .won
@@ -95,7 +109,8 @@ final class WordleGame {
     func reset() {
         guesses = []
         letterStates = []
-        currentGuess = ""
+        currentTiles = Array(repeating: nil, count: wordLength)
+        selectedCol = 0
         keyboardState = [:]
         state = .playing
         score = 0
