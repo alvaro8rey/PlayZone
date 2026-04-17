@@ -4,6 +4,7 @@ struct HomeView: View {
     @Binding var path: NavigationPath
     @AppStorage("playerName") private var playerName = ""
     @State private var showSettings = false
+    @State private var expandedGame: GameType? = nil
 
     var body: some View {
         ZStack {
@@ -52,7 +53,7 @@ struct HomeView: View {
     private var gamesGrid: some View {
         LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 16) {
             ForEach(GameType.allCases) { game in
-                GameCard(game: game, path: $path)
+                GameCard(game: game, path: $path, expandedGame: $expandedGame)
             }
         }
         .padding(.horizontal, 16)
@@ -64,13 +65,18 @@ struct HomeView: View {
 struct GameCard: View {
     let game: GameType
     @Binding var path: NavigationPath
-    @State private var selectedDifficulty: Difficulty = .easy
-    @State private var expanded = false
+    @Binding var expandedGame: GameType?
+
+    private var expanded: Bool { expandedGame == game }
 
     var body: some View {
         VStack(spacing: 0) {
             // Card front
-            Button { withAnimation(.spring(response: 0.35)) { expanded.toggle() } } label: {
+            Button {
+                withAnimation(.spring(response: 0.35)) {
+                    expandedGame = expanded ? nil : game
+                }
+            } label: {
                 ZStack {
                     LinearGradient(colors: game.gradient, startPoint: .topLeading, endPoint: .bottomTrailing)
 
@@ -130,7 +136,7 @@ struct GameCard: View {
 
                     Button {
                         path.append(Route.ranking(game))
-                        expanded = false
+                        expandedGame = nil
                     } label: {
                         HStack {
                             Image(systemName: "trophy.fill")
@@ -156,7 +162,7 @@ struct GameCard: View {
     }
 
     private func navigate(difficulty: Difficulty) {
-        expanded = false
+        expandedGame = nil
         switch game {
         case .minesweeper: path.append(Route.minesweeper(difficulty))
         case .sudoku:      path.append(Route.sudoku(difficulty))
