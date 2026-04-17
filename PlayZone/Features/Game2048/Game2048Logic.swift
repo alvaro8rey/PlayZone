@@ -35,9 +35,9 @@ final class Game2048 {
         let previous = board
         switch direction {
         case .left:  board = board.map { slide($0) }
-        case .right: board = board.map { slide($0.reversed()).reversed() }
-        case .up:    board = transpose(slide(transpose(board).map { $0 }))
-        case .down:  board = transpose(slide(transpose(board).map { $0.reversed() }).map { $0.reversed() })
+        case .right: board = board.map { Array(slide(Array($0.reversed())).reversed()) }
+        case .up:    board = transpose(transpose(board).map { slide($0) })
+        case .down:  board = transpose(transpose(board).map { Array(slide(Array($0.reversed())).reversed()) })
         }
         guard board != previous else { return }
         addTile()
