@@ -24,7 +24,7 @@ import FirebaseCore
 import FirebaseFirestore
 
 final class FirebaseRankingService: RankingService {
-    private let db = Firestore.firestore()
+    private lazy var db = Firestore.firestore()
     private let col = "rankings"
 
     func save(_ entry: RankingEntry) async throws {
