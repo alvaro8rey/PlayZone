@@ -20,7 +20,6 @@
 //
 // 5. Uncomment the code below (remove the #if false / #endif wrapper).
 
-#if false   // ← remove this line after following the steps above
 import FirebaseCore
 import FirebaseFirestore
 
@@ -62,4 +61,3 @@ final class FirebaseRankingService: RankingService {
         }
     }
 }
-#endif  // ← remove this line too

@@ -2,9 +2,11 @@ import SwiftUI
 
 @main
 struct PlayZoneApp: App {
-    // To switch to Firebase, replace with FirebaseRankingService()
-    // and call FirebaseApp.configure() in init() (see FirebaseRankingService.swift)
-    let ranking: any RankingService = LocalRankingService.shared
+    let ranking: any RankingService = FirebaseRankingService()
+
+    init() {
+        FirebaseApp.configure()
+    }
 
     @AppStorage("playerName") var playerName: String = ""
 
