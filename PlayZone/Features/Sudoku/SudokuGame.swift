@@ -55,14 +55,14 @@ final class SudokuGame {
         guard let sel = selected else { return }
         guard puzzle[sel.row][sel.col] == 0 else { return }
 
-        if notesMode {
-            notes[sel.row][sel.col][number - 1].toggle()
-            return
-        }
-
         if number == 0 {
             board[sel.row][sel.col] = 0
             notes[sel.row][sel.col] = Array(repeating: false, count: 9)
+            return
+        }
+
+        if notesMode {
+            notes[sel.row][sel.col][number - 1].toggle()
             return
         }
 
