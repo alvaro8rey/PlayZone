@@ -1,6 +1,6 @@
 import Foundation
 
-struct RankingEntry: Identifiable, Codable {
+struct RankingEntry: Identifiable, Codable, Equatable {
     let id: String
     let playerName: String
     let game: String
