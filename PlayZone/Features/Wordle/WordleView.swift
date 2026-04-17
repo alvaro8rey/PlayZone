@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 struct WordleView: View {
     let difficulty: Difficulty
@@ -8,6 +9,7 @@ struct WordleView: View {
     @State private var showResult = false
     @State private var isNewRecord = false
     @State private var shakeRow: Int? = nil
+    @State private var keyboardFocused = false
     @Environment(\.rankingService) private var rankingService
     @AppStorage("playerName") private var playerName = ""
 
@@ -24,22 +26,26 @@ struct WordleView: View {
             if game.isLoading {
                 loadingView
             } else {
-                VStack(spacing: 16) {
+                VStack(spacing: 0) {
                     tileGrid
-                        .padding(.horizontal, 16)
+                        .padding(.horizontal, 32)
+                        .padding(.top, 16)
                     Spacer()
-                    keyboard
-                        .padding(.horizontal, 8)
-                        .padding(.bottom, 12)
+                    NativeKeyboardInput(focused: $keyboardFocused, onKey: handleKey)
+                        .frame(width: 1, height: 1)
+                        .opacity(0.001)
                 }
-                .padding(.top, 8)
+                .contentShape(Rectangle())
+                .onTapGesture { keyboardFocused = true }
             }
         }
         .navigationTitle("Wordle · \(difficulty.rawValue) (\(game.wordLength) letras)")
         .navigationBarTitleDisplayMode(.inline)
         .toolbarColorScheme(.dark, for: .navigationBar)
+        .onAppear { keyboardFocused = true }
         .onChange(of: game.state) { _, st in
             guard st != .playing else { return }
+            keyboardFocused = false
             Task {
                 if st == .won { await submitScore() }
                 try? await Task.sleep(nanoseconds: 800_000_000)
@@ -47,16 +53,13 @@ struct WordleView: View {
             }
         }
         .alert(game.state == .won ? "¡Lo conseguiste! 🎉" : "Game Over", isPresented: $showResult) {
-            Button("Reintentar") { game.reset() }
+            Button("Reintentar") { game.reset(); keyboardFocused = true }
             Button("Menú") { path.removeLast(path.count) }
         } message: {
             if game.state == .won {
-                let base = "La palabra era: \(game.targetWord.uppercased())"
-                if isNewRecord {
-                    Text("🏆 ¡Nuevo récord!  \(game.score) pts\n\(base)")
-                } else {
-                    Text("\(game.score) pts\n\(base)")
-                }
+                Text(isNewRecord
+                     ? "🏆 ¡Nuevo récord!  \(game.score) pts\nLa palabra era: \(game.targetWord.uppercased())"
+                     : "\(game.score) pts\nLa palabra era: \(game.targetWord.uppercased())")
             } else {
                 Text("La palabra era: \(game.targetWord.uppercased())")
             }
@@ -67,9 +70,7 @@ struct WordleView: View {
 
     private var loadingView: some View {
         VStack(spacing: 16) {
-            ProgressView()
-                .tint(.white)
-                .scaleEffect(1.4)
+            ProgressView().tint(.white).scaleEffect(1.4)
             Text("Cargando palabra...")
                 .font(.subheadline)
                 .foregroundStyle(Color(hex: "94A3B8"))
@@ -79,9 +80,9 @@ struct WordleView: View {
     // MARK: - Tile Grid
 
     private var tileGrid: some View {
-        VStack(spacing: 6) {
+        VStack(spacing: 8) {
             ForEach(0..<game.maxAttempts, id: \.self) { row in
-                HStack(spacing: 6) {
+                HStack(spacing: 8) {
                     ForEach(0..<game.wordLength, id: \.self) { col in
                         TileView(
                             letter: letter(row: row, col: col),
@@ -97,9 +98,7 @@ struct WordleView: View {
     }
 
     private func letter(row: Int, col: Int) -> Character? {
-        if row < game.guesses.count {
-            return game.guesses[row][col]
-        }
+        if row < game.guesses.count { return game.guesses[row][col] }
         if row == game.currentRow {
             let chars = Array(game.currentGuess)
             return col < chars.count ? chars[col] : nil
@@ -112,53 +111,21 @@ struct WordleView: View {
         return game.letterStates[row][col]
     }
 
-    // MARK: - Keyboard
+    // MARK: - Key handling
 
-    private let rows: [[Character]] = [
-        ["Q","W","E","R","T","Y","U","I","O","P"],
-        ["A","S","D","F","G","H","J","K","L","Ñ"],
-        ["↵","Z","X","C","V","B","N","M","⌫"]
-    ]
-
-    private var keyboard: some View {
-        VStack(spacing: 8) {
-            ForEach(rows.indices, id: \.self) { r in
-                HStack(spacing: 5) {
-                    ForEach(rows[r], id: \.self) { key in
-                        KeyButton(key: key, state: keyState(key)) {
-                            handleKey(key)
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    private func keyState(_ key: Character) -> LetterState {
-        keyboardState(for: key)
-    }
-
-    private func keyboardState(for key: Character) -> LetterState {
-        let lower = Character(String(key).lowercased())
-        return game.keyboardState[lower] ?? .unknown
-    }
-
-    private func handleKey(_ key: Character) {
+    private func handleKey(_ key: Character?) {
         guard game.state == .playing else { return }
-        switch key {
-        case "⌫": game.deleteLetter()
-        case "↵":
-            let submitted = game.submitGuess()
-            if !submitted {
-                withAnimation { shakeRow = game.currentRow }
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { shakeRow = nil }
+        if let ch = key {
+            game.addLetter(Character(String(ch).lowercased()))
+            if game.currentGuess.count == game.wordLength {
+                _ = game.submitGuess()
             }
-        default:
-            game.addLetter(Character(String(key).lowercased()))
+        } else {
+            game.deleteLetter()
         }
     }
 
-    // MARK: - Submit
+    // MARK: - Submit score
 
     private func submitScore() async {
         let current = try? await rankingService.fetch(game: .wordle, difficulty: difficulty)
@@ -170,6 +137,55 @@ struct WordleView: View {
     }
 }
 
+// MARK: - Native keyboard bridge
+
+struct NativeKeyboardInput: UIViewRepresentable {
+    @Binding var focused: Bool
+    let onKey: (Character?) -> Void
+
+    func makeUIView(context: Context) -> UITextField {
+        let tf = UITextField()
+        tf.delegate = context.coordinator
+        tf.autocorrectionType = .no
+        tf.autocapitalizationType = .allCharacters
+        tf.spellCheckingType = .no
+        tf.smartDashesType = .no
+        tf.smartQuotesType = .no
+        tf.keyboardType = .asciiCapable
+        return tf
+    }
+
+    func updateUIView(_ uiView: UITextField, context: Context) {
+        DispatchQueue.main.async {
+            if focused && !uiView.isFirstResponder {
+                uiView.becomeFirstResponder()
+            } else if !focused && uiView.isFirstResponder {
+                uiView.resignFirstResponder()
+            }
+        }
+    }
+
+    func makeCoordinator() -> Coordinator { Coordinator(onKey: onKey) }
+
+    class Coordinator: NSObject, UITextFieldDelegate {
+        let onKey: (Character?) -> Void
+        init(onKey: @escaping (Character?) -> Void) { self.onKey = onKey }
+
+        func textField(_ textField: UITextField,
+                       shouldChangeCharactersIn range: NSRange,
+                       replacementString string: String) -> Bool {
+            if string.isEmpty {
+                onKey(nil)
+            } else {
+                for scalar in string.unicodeScalars where scalar.properties.isAlphabetic {
+                    onKey(Character(scalar))
+                }
+            }
+            return false
+        }
+    }
+}
+
 // MARK: - Tile View
 
 struct TileView: View {
@@ -178,43 +194,30 @@ struct TileView: View {
     let revealed: Bool
     let revealDelay: Double
 
-    @State private var flipped = false
-
     var body: some View {
         ZStack {
             RoundedRectangle(cornerRadius: 6)
                 .fill(bgColor)
+                .animation(.easeInOut(duration: 0.25).delay(revealDelay), value: revealed)
                 .overlay(RoundedRectangle(cornerRadius: 6).stroke(borderColor, lineWidth: 2))
 
             if let ch = letter {
                 Text(String(ch).uppercased())
                     .font(.title2.bold())
                     .foregroundStyle(revealed ? .white : Color(hex: "E2E8F0"))
-                    .scaleEffect(flipped ? 1 : 0.8)
             }
         }
         .frame(maxWidth: .infinity)
         .aspectRatio(1, contentMode: .fit)
-        .rotation3DEffect(.degrees(flipped ? 0 : 0), axis: (1, 0, 0))
-        .onChange(of: revealed) { _, isRevealed in
-            if isRevealed {
-                withAnimation(.easeInOut(duration: 0.3).delay(revealDelay)) {
-                    flipped = true
-                }
-            }
-        }
-        .onChange(of: letter) { _, _ in
-            if !revealed { flipped = false }
-        }
     }
 
     private var bgColor: Color {
         if !revealed { return letter == nil ? Color(hex: "1E293B") : Color(hex: "334155") }
         switch state {
-        case .correct:  return Color(hex: "16A34A")
-        case .present:  return Color(hex: "D97706")
-        case .absent:   return Color(hex: "475569")
-        case .unknown:  return Color(hex: "1E293B")
+        case .correct: return Color(hex: "16A34A")
+        case .present: return Color(hex: "D97706")
+        case .absent:  return Color(hex: "475569")
+        case .unknown: return Color(hex: "1E293B")
         }
     }
 
@@ -224,48 +227,17 @@ struct TileView: View {
     }
 }
 
-// MARK: - Key Button
-
-struct KeyButton: View {
-    let key: Character
-    let state: LetterState
-    let action: () -> Void
-
-    var body: some View {
-        Button(action: action) {
-            Text(String(key))
-                .font(.system(size: key == "↵" || key == "⌫" ? 13 : 15, weight: .bold))
-                .foregroundStyle(.white)
-                .frame(maxWidth: .infinity)
-                .frame(height: 44)
-                .background(bgColor)
-                .clipShape(RoundedRectangle(cornerRadius: 6))
-        }
-        .frame(width: key == "↵" || key == "⌫" ? 46 : nil)
-    }
-
-    private var bgColor: Color {
-        switch state {
-        case .correct:  return Color(hex: "16A34A")
-        case .present:  return Color(hex: "D97706")
-        case .absent:   return Color(hex: "374151")
-        case .unknown:  return Color(hex: "4B5563")
-        }
-    }
-}
-
 // MARK: - Shake Effect
 
 struct ShakeEffect: ViewModifier {
     let trigger: Bool
-
     func body(content: Content) -> some View {
         content
             .offset(x: trigger ? 8 : 0)
             .animation(
                 trigger
-                ? .interpolatingSpring(stiffness: 600, damping: 10).repeatCount(3, autoreverses: true)
-                : .default,
+                    ? .interpolatingSpring(stiffness: 600, damping: 10).repeatCount(3, autoreverses: true)
+                    : .default,
                 value: trigger
             )
     }
