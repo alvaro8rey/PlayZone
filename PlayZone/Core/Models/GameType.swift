@@ -8,6 +8,7 @@ enum GameType: String, CaseIterable, Codable, Identifiable {
     case game2048    = "2048"
     case memory      = "Memoria"
     case snake       = "Snake"
+    case wordle      = "Wordle"
 
     var id: String { rawValue }
 
@@ -18,6 +19,7 @@ enum GameType: String, CaseIterable, Codable, Identifiable {
         case .game2048:    return "square.stack.fill"
         case .memory:      return "rectangle.on.rectangle.angled.fill"
         case .snake:       return "arrow.triangle.turn.up.right.diamond.fill"
+        case .wordle:      return "textformat.abc"
         }
     }
 
@@ -28,6 +30,7 @@ enum GameType: String, CaseIterable, Codable, Identifiable {
         case .game2048:    return "Combina fichas para llegar al 2048"
         case .memory:      return "Encuentra todas las parejas de cartas"
         case .snake:       return "Guía la serpiente y come sin chocar"
+        case .wordle:      return "Adivina la palabra oculta en 6 intentos"
         }
     }
 
@@ -38,13 +41,14 @@ enum GameType: String, CaseIterable, Codable, Identifiable {
         case .game2048:    return [Color(hex: "F97316"), Color(hex: "C2410C")]
         case .memory:      return [Color(hex: "A855F7"), Color(hex: "6D28D9")]
         case .snake:       return [Color(hex: "14B8A6"), Color(hex: "0F766E")]
+        case .wordle:      return [Color(hex: "F59E0B"), Color(hex: "B45309")]
         }
     }
 
     var rankingType: RankingType {
         switch self {
         case .minesweeper, .sudoku, .memory: return .time
-        case .game2048, .snake:              return .score
+        case .game2048, .snake, .wordle:     return .score
         }
     }
 

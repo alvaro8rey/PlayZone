@@ -169,6 +169,7 @@ struct GameCard: View {
         case .game2048:    path.append(Route.game2048(difficulty))
         case .memory:      path.append(Route.memory(difficulty))
         case .snake:       path.append(Route.snake(difficulty))
+        case .wordle:      path.append(Route.wordle(difficulty))
         }
     }
 }
