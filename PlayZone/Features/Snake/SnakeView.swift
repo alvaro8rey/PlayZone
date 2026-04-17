@@ -6,6 +6,7 @@ struct SnakeView: View {
 
     @State private var game: SnakeGame
     @State private var showOver = false
+    @State private var isNewRecord = false
     @Environment(\.rankingService) private var rankingService
     @AppStorage("playerName") private var playerName = ""
 
@@ -38,14 +39,20 @@ struct SnakeView: View {
         .toolbarColorScheme(.dark, for: .navigationBar)
         .onChange(of: game.state) { _, st in
             if st == .over {
-                Task { await submitScore() }
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { showOver = true }
+                Task {
+                    await submitScore()
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { showOver = true }
+                }
             }
         }
         .alert("Game Over 🐍", isPresented: $showOver) {
             Button("Reintentar") { game.reset() }
             Button("Menú") { path.removeLast(path.count) }
-        } message: { Text("Puntuación: \(game.score)") }
+        } message: {
+            Text(isNewRecord
+                 ? "🏆 ¡Nueva marca!  \(game.score) pts"
+                 : "Puntuación: \(game.score) pts")
+        }
     }
 
     // MARK: - Score Row
@@ -159,8 +166,11 @@ struct SnakeView: View {
     }
 
     private func submitScore() async {
+        let current = try? await rankingService.fetch(game: .snake, difficulty: difficulty)
+        let previousBest = current?.first(where: { $0.playerName == playerName })?.value
         let entry = RankingEntry(playerName: playerName, game: .snake,
                                  difficulty: difficulty, value: game.score)
         try? await rankingService.save(entry)
+        isNewRecord = previousBest == nil || game.score > previousBest!
     }
 }

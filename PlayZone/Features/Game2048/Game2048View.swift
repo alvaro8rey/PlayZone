@@ -7,6 +7,7 @@ struct Game2048View: View {
     @State private var game: Game2048
     @State private var showWin = false
     @State private var showOver = false
+    @State private var isNewRecord = false
     @Environment(\.rankingService) private var rankingService
     @AppStorage("playerName") private var playerName = ""
 
@@ -36,8 +37,10 @@ struct Game2048View: View {
         .onChange(of: game.hasWon) { _, won in if won { showWin = true } }
         .onChange(of: game.isOver) { _, over in
             if over {
-                Task { await submitScore() }
-                showOver = true
+                Task {
+                    await submitScore()
+                    showOver = true
+                }
             }
         }
         .alert("¡Llegaste a \(game.goal)! 🎉", isPresented: $showWin) {
@@ -47,7 +50,11 @@ struct Game2048View: View {
         .alert("Game Over", isPresented: $showOver) {
             Button("Reintentar") { game.reset() }
             Button("Menú") { path.removeLast(path.count) }
-        } message: { Text("Puntuación: \(game.score)") }
+        } message: {
+            Text(isNewRecord
+                 ? "🏆 ¡Nueva marca!  \(game.score) pts"
+                 : "Puntuación: \(game.score) pts")
+        }
     }
 
     // MARK: - Score Row
@@ -144,9 +151,12 @@ struct Game2048View: View {
     }
 
     private func submitScore() async {
+        let current = try? await rankingService.fetch(game: .game2048, difficulty: difficulty)
+        let previousBest = current?.first(where: { $0.playerName == playerName })?.value
         let entry = RankingEntry(playerName: playerName, game: .game2048,
                                  difficulty: difficulty, value: game.score)
         try? await rankingService.save(entry)
+        isNewRecord = previousBest == nil || game.score > previousBest!
     }
 }
 
