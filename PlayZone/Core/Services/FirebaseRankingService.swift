@@ -39,25 +39,30 @@ final class FirebaseRankingService: RankingService {
     }
 
     func fetch(game: GameType, difficulty: Difficulty) async throws -> [RankingEntry] {
-        let descending = game.rankingType == .score
+        // No .order() in the query — avoids requiring a Firestore composite index.
+        // Sorting is done in Swift after fetching.
         let snap = try await db.collection(col)
             .whereField("game",       isEqualTo: game.rawValue)
             .whereField("difficulty", isEqualTo: difficulty.rawValue)
-            .order(by: "value", descending: descending)
-            .limit(to: 10)
             .getDocuments()
 
-        return snap.documents.compactMap { doc in
+        let entries: [RankingEntry] = snap.documents.compactMap { doc in
             let d = doc.data()
-            guard let name  = d["playerName"] as? String,
-                  let g     = d["game"]       as? String,
-                  let diff  = d["difficulty"] as? String,
-                  let val   = d["value"]      as? Int,
-                  let ts    = d["date"]       as? Timestamp
+            guard let name = d["playerName"] as? String,
+                  let g    = d["game"]       as? String,
+                  let diff = d["difficulty"] as? String,
+                  let val  = d["value"]      as? Int,
+                  let ts   = d["date"]       as? Timestamp
             else { return nil }
             return RankingEntry(id: doc.documentID, playerName: name,
                                 game: g, difficulty: diff,
                                 value: val, date: ts.dateValue())
         }
+
+        let sorted = game.rankingType == .score
+            ? entries.sorted { $0.value > $1.value }
+            : entries.sorted { $0.value < $1.value }
+
+        return Array(sorted.prefix(10))
     }
 }
