@@ -31,6 +31,8 @@ final class MinesweeperGame {
     private(set) var state: MinesweeperState = .idle
     private(set) var flagCount: Int = 0
     private(set) var elapsedSeconds: Int = 0
+    private(set) var finalMilliseconds: Int = 0
+    private var startDate: Date?
     private var timer: Timer?
     private var firstTap = true
 
@@ -55,6 +57,7 @@ final class MinesweeperGame {
 
         if cells[index].isMine {
             revealAll()
+            finalMilliseconds = elapsedMs()
             state = .lost
             stopTimer()
             return
@@ -76,6 +79,8 @@ final class MinesweeperGame {
         firstTap = true
         flagCount = 0
         elapsedSeconds = 0
+        finalMilliseconds = 0
+        startDate = nil
         state = .idle
         let total = config.rows * config.cols
         cells = (0..<total).map { MineCell(id: $0) }
@@ -134,16 +139,22 @@ final class MinesweeperGame {
     private func checkWin() {
         let unrevealed = cells.filter { !$0.isRevealed && !$0.isMine }.count
         if unrevealed == 0 {
+            finalMilliseconds = elapsedMs()
             state = .won
             stopTimer()
         }
     }
 
     private func startTimer() {
+        startDate = Date()
         timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
             self?.elapsedSeconds += 1
         }
     }
 
     private func stopTimer() { timer?.invalidate(); timer = nil }
+
+    private func elapsedMs() -> Int {
+        Int((startDate.map { Date().timeIntervalSince($0) } ?? 0) * 1000)
+    }
 }

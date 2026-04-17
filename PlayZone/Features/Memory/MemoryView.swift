@@ -97,7 +97,7 @@ struct MemoryView: View {
 
     private func submitScore() async {
         let entry = RankingEntry(playerName: playerName, game: .memory,
-                                 difficulty: difficulty, value: game.elapsedSeconds)
+                                 difficulty: difficulty, value: game.finalMilliseconds)
         try? await rankingService.save(entry)
     }
 }

@@ -171,7 +171,7 @@ struct SudokuView: View {
 
     private func submitScore() async {
         let entry = RankingEntry(playerName: playerName, game: .sudoku,
-                                 difficulty: difficulty, value: game.elapsedSeconds)
+                                 difficulty: difficulty, value: game.finalMilliseconds)
         try? await rankingService.save(entry)
     }
 }

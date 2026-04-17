@@ -88,8 +88,8 @@ final class FirebaseRankingService: RankingService {
             .values
             .compactMap { group -> RankingEntry? in
                 game.rankingType == .score
-                    ? group.max(by: { $0.value < $1.value })
-                    : group.min(by: { $0.value > $1.value })
+                    ? group.max(by: { $0.value < $1.value })   // highest score wins
+                    : group.min(by: { $0.value < $1.value })   // lowest time wins
             }
 
         return game.rankingType == .score

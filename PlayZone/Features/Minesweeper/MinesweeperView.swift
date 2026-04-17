@@ -104,7 +104,7 @@ struct MinesweeperView: View {
     private func submitScore() async {
         guard game.state == .won else { return }
         let entry = RankingEntry(playerName: playerName, game: .minesweeper,
-                                 difficulty: difficulty, value: game.elapsedSeconds)
+                                 difficulty: difficulty, value: game.finalMilliseconds)
         try? await rankingService.save(entry)
     }
 }

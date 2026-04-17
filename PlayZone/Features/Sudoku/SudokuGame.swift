@@ -13,7 +13,9 @@ final class SudokuGame {
     private(set) var isLoading: Bool = false
     private(set) var errorMessage: String? = nil
     private(set) var elapsedSeconds: Int = 0
+    private(set) var finalMilliseconds: Int = 0
     private(set) var notesMode: Bool = false
+    private var startDate: Date?
     private var timer: Timer?
 
     init(difficulty: Difficulty) {
@@ -108,6 +110,8 @@ final class SudokuGame {
 
     private func startTimer() {
         elapsedSeconds = 0
+        finalMilliseconds = 0
+        startDate = Date()
         stopTimer()
         timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
             self?.elapsedSeconds += 1
@@ -118,6 +122,7 @@ final class SudokuGame {
         for r in 0..<9 {
             for c in 0..<9 where board[r][c] != solution[r][c] { return }
         }
+        finalMilliseconds = Int((startDate.map { Date().timeIntervalSince($0) } ?? 0) * 1000)
         isComplete = true
         stopTimer()
     }

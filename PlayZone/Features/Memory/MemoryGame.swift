@@ -15,9 +15,11 @@ final class MemoryGame {
     private(set) var matchedPairs: Int = 0
     private(set) var isComplete: Bool = false
     private(set) var elapsedSeconds: Int = 0
+    private(set) var finalMilliseconds: Int = 0
 
     private var firstSelected: Int? = nil
     private var isLocked: Bool = false
+    private var startDate: Date?
     private var timer: Timer?
 
     let totalPairs: Int
@@ -57,6 +59,7 @@ final class MemoryGame {
                 matchedPairs += 1
                 firstSelected = nil
                 if matchedPairs == totalPairs {
+                    finalMilliseconds = Int((startDate.map { Date().timeIntervalSince($0) } ?? 0) * 1000)
                     isComplete = true
                     stopTimer()
                 }
@@ -83,6 +86,7 @@ final class MemoryGame {
         moves = 0
         matchedPairs = 0
         isComplete = false
+        finalMilliseconds = 0
         firstSelected = nil
         isLocked = false
         stopTimer()
@@ -91,6 +95,7 @@ final class MemoryGame {
 
     private func startTimer() {
         elapsedSeconds = 0
+        startDate = Date()
         timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
             self?.elapsedSeconds += 1
         }

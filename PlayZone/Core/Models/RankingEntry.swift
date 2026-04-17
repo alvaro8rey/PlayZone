@@ -29,7 +29,10 @@ struct RankingEntry: Identifiable, Codable, Equatable {
     var formattedValue: String {
         guard let gameType = GameType(rawValue: game) else { return "\(value)" }
         if gameType.rankingType == .time {
-            return String(format: "%02d:%02d", value / 60, value % 60)
+            // value is stored in milliseconds
+            let totalSeconds = value / 1000
+            let ms = (value % 1000) / 10  // centiseconds for display
+            return String(format: "%02d:%02d.%02d", totalSeconds / 60, totalSeconds % 60, ms)
         }
         return "\(value) pts"
     }
