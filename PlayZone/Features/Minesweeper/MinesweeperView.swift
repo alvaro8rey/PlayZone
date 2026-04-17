@@ -6,6 +6,7 @@ struct MinesweeperView: View {
 
     @State private var game: MinesweeperGame
     @State private var showResult = false
+    @State private var isNewRecord = false
     @Environment(\.rankingService) private var rankingService
     @AppStorage("playerName") private var playerName = ""
 
@@ -39,17 +40,23 @@ struct MinesweeperView: View {
         .toolbarColorScheme(.dark, for: .navigationBar)
         .onChange(of: game.state) { _, newState in
             if newState == .won || newState == .lost {
-                Task { await submitScore() }
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) { showResult = true }
+                Task {
+                    await submitScore()
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) { showResult = true }
+                }
             }
         }
         .alert(game.state == .won ? "¡Ganaste! 🎉" : "¡Boom! 💥", isPresented: $showResult) {
             Button("Reintentar") { game.reset() }
             Button("Menú") { path.removeLast(path.count) }
         } message: {
-            Text(game.state == .won
-                 ? "Tiempo: \(formattedTime(game.elapsedSeconds))"
-                 : "Has explotado una mina.")
+            if game.state == .won {
+                Text(isNewRecord
+                     ? "🏆 ¡Nuevo récord! \(formattedTime(game.elapsedSeconds))"
+                     : "Tiempo: \(formattedTime(game.elapsedSeconds))")
+            } else {
+                Text("Has explotado una mina.")
+            }
         }
     }
 
@@ -103,9 +110,12 @@ struct MinesweeperView: View {
 
     private func submitScore() async {
         guard game.state == .won else { return }
+        let current = try? await rankingService.fetch(game: .minesweeper, difficulty: difficulty)
+        let previousBest = current?.first(where: { $0.playerName == playerName })?.value
         let entry = RankingEntry(playerName: playerName, game: .minesweeper,
                                  difficulty: difficulty, value: game.finalMilliseconds)
         try? await rankingService.save(entry)
+        isNewRecord = previousBest == nil || game.finalMilliseconds < previousBest!
     }
 }
 

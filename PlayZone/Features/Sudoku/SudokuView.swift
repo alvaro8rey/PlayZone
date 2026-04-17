@@ -6,6 +6,7 @@ struct SudokuView: View {
 
     @State private var game: SudokuGame
     @State private var showResult = false
+    @State private var isNewRecord = false
     @Environment(\.rankingService) private var rankingService
     @AppStorage("playerName") private var playerName = ""
 
@@ -60,15 +61,19 @@ struct SudokuView: View {
         .task { await game.load() }
         .onChange(of: game.isComplete) { _, complete in
             if complete {
-                Task { await submitScore() }
-                showResult = true
+                Task {
+                    await submitScore()
+                    showResult = true
+                }
             }
         }
         .alert("¡Sudoku Completado! 🎉", isPresented: $showResult) {
             Button("Nuevo juego") { Task { await game.load() } }
             Button("Menú") { path.removeLast(path.count) }
         } message: {
-            Text("Tiempo: \(formattedTime(game.elapsedSeconds))  •  Errores: \(game.mistakes)")
+            Text(isNewRecord
+                 ? "🏆 ¡Nuevo récord!  \(formattedTime(game.elapsedSeconds))  •  \(game.mistakes) errores"
+                 : "Tiempo: \(formattedTime(game.elapsedSeconds))  •  Errores: \(game.mistakes)")
         }
     }
 
@@ -170,9 +175,12 @@ struct SudokuView: View {
     }
 
     private func submitScore() async {
+        let current = try? await rankingService.fetch(game: .sudoku, difficulty: difficulty)
+        let previousBest = current?.first(where: { $0.playerName == playerName })?.value
         let entry = RankingEntry(playerName: playerName, game: .sudoku,
                                  difficulty: difficulty, value: game.finalMilliseconds)
         try? await rankingService.save(entry)
+        isNewRecord = previousBest == nil || game.finalMilliseconds < previousBest!
     }
 }
 

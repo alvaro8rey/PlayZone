@@ -6,6 +6,7 @@ struct MemoryView: View {
 
     @State private var game: MemoryGame
     @State private var showResult = false
+    @State private var isNewRecord = false
     @Environment(\.rankingService) private var rankingService
     @AppStorage("playerName") private var playerName = ""
 
@@ -41,15 +42,19 @@ struct MemoryView: View {
         .toolbarColorScheme(.dark, for: .navigationBar)
         .onChange(of: game.isComplete) { _, complete in
             if complete {
-                Task { await submitScore() }
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) { showResult = true }
+                Task {
+                    await submitScore()
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) { showResult = true }
+                }
             }
         }
         .alert("¡Completado! 🎉", isPresented: $showResult) {
             Button("Nuevo juego") { game.reset() }
             Button("Menú") { path.removeLast(path.count) }
         } message: {
-            Text("Tiempo: \(formattedTime(game.elapsedSeconds))  •  Movimientos: \(game.moves)")
+            Text(isNewRecord
+                 ? "🏆 ¡Nuevo récord!  \(formattedTime(game.elapsedSeconds))  •  \(game.moves) movs."
+                 : "Tiempo: \(formattedTime(game.elapsedSeconds))  •  \(game.moves) movs.")
         }
     }
 
@@ -96,9 +101,12 @@ struct MemoryView: View {
     }
 
     private func submitScore() async {
+        let current = try? await rankingService.fetch(game: .memory, difficulty: difficulty)
+        let previousBest = current?.first(where: { $0.playerName == playerName })?.value
         let entry = RankingEntry(playerName: playerName, game: .memory,
                                  difficulty: difficulty, value: game.finalMilliseconds)
         try? await rankingService.save(entry)
+        isNewRecord = previousBest == nil || game.finalMilliseconds < previousBest!
     }
 }
 
