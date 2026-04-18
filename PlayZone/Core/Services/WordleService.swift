@@ -18,17 +18,45 @@ actor WordleService {
     // MARK: - API
 
     private func fetchFromAPI(length: Int) async throws -> String {
-        let url = URL(string: "https://random-word-api.herokuapp.com/word?lang=es&length=\(length)")!
-        var req = URLRequest(url: url)
-        req.timeoutInterval = 4
-        let (data, _) = try await URLSession.shared.data(for: req)
-        let words = try JSONDecoder().decode([String].self, from: data)
-        guard let raw = words.first else { throw URLError(.badServerResponse) }
+        var comps = URLComponents(string: "https://rae-api.com/api/random")!
+        comps.queryItems = [
+            URLQueryItem(name: "min_length", value: "\(length)"),
+            URLQueryItem(name: "max_length", value: "\(length)")
+        ]
+        var req = URLRequest(url: comps.url!)
+        req.timeoutInterval = 5
+        let (data, resp) = try await URLSession.shared.data(for: req)
+        guard (resp as? HTTPURLResponse)?.statusCode == 200 else {
+            throw URLError(.badServerResponse)
+        }
+        let raw = try extractWord(from: data)
         let cleaned = raw.folding(options: .diacriticInsensitive, locale: .current).lowercased()
         guard cleaned.count == length, cleaned.allSatisfy({ $0.isLetter && $0.isASCII }) else {
             throw URLError(.badServerResponse)
         }
         return cleaned
+    }
+
+    private func extractWord(from data: Data) throws -> String {
+        guard let json = try? JSONSerialization.jsonObject(with: data) else {
+            throw URLError(.cannotParseResponse)
+        }
+        // Object: {"palabra":"…"} or {"word":"…"}
+        if let obj = json as? [String: Any] {
+            for key in ["palabra", "word", "term", "texto"] {
+                if let w = obj[key] as? String, !w.isEmpty { return w }
+            }
+        }
+        // Array: ["palabra"] or [{"word":"…"}]
+        if let arr = json as? [Any] {
+            if let w = arr.first as? String, !w.isEmpty { return w }
+            if let obj = arr.first as? [String: Any] {
+                for key in ["palabra", "word", "term"] {
+                    if let w = obj[key] as? String, !w.isEmpty { return w }
+                }
+            }
+        }
+        throw URLError(.cannotParseResponse)
     }
 
     // MARK: - Local words
