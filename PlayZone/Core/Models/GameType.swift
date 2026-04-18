@@ -52,7 +52,8 @@ enum GameType: String, CaseIterable, Codable, Identifiable {
     var rankingType: RankingType {
         switch self {
         case .minesweeper, .sudoku, .memory: return .time
-        case .game2048, .snake, .breakout:   return .score
+        case .game2048, .snake:              return .score
+        case .breakout:                      return .time
         case .wordle:                        return .streak
         }
     }

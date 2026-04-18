@@ -33,7 +33,7 @@ struct BreakoutView: View {
         .onChange(of: game.state) { _, st in
             guard st != .playing, st != .idle else { return }
             Task {
-                if st == .won || st == .over { await submitScore() }
+                if st == .won { await submitScore() }
                 try? await Task.sleep(nanoseconds: 600_000_000)
                 if st == .won  { showWin  = true }
                 if st == .over { showOver = true }
@@ -44,16 +44,14 @@ struct BreakoutView: View {
             Button("Menú") { path.removeLast(path.count) }
         } message: {
             Text(isNewRecord
-                 ? "🏆 ¡Nueva marca!  \(game.score) pts"
-                 : "Puntuación: \(game.score) pts")
+                 ? "🏆 ¡Nuevo récord!  \(formattedTime(game.finalMilliseconds))"
+                 : "Tiempo: \(formattedTime(game.finalMilliseconds))")
         }
         .alert("Game Over", isPresented: $showOver) {
             Button("Reintentar") { game.reset() }
             Button("Menú") { path.removeLast(path.count) }
         } message: {
-            Text(isNewRecord
-                 ? "🏆 ¡Nueva marca!  \(game.score) pts"
-                 : "Puntuación: \(game.score) pts")
+            Text("Se acabaron las vidas")
         }
     }
 
@@ -61,9 +59,9 @@ struct BreakoutView: View {
 
     private var hud: some View {
         HStack {
-            Label("\(game.score)", systemImage: "star.fill")
-                .font(.headline.bold())
-                .foregroundStyle(.yellow)
+            Label(formattedTime(game.displaySeconds * 1000), systemImage: "timer")
+                .font(.headline.bold().monospacedDigit())
+                .foregroundStyle(.white)
             Spacer()
             HStack(spacing: 6) {
                 ForEach(0..<3, id: \.self) { i in
@@ -186,12 +184,20 @@ struct BreakoutView: View {
     // MARK: - Submit score
 
     private func submitScore() async {
+        let ms = game.finalMilliseconds
+        guard ms > 0 else { return }
         let current = try? await rankingService.fetch(game: .breakout, difficulty: difficulty)
         let previousBest = current?.first(where: { $0.playerName == playerName })?.value
         let entry = RankingEntry(playerName: playerName, game: .breakout,
-                                 difficulty: difficulty, value: game.score)
+                                 difficulty: difficulty, value: ms)
         try? await rankingService.save(entry)
-        isNewRecord = previousBest == nil || game.score > previousBest!
+        isNewRecord = previousBest == nil || ms < previousBest!
+    }
+
+    private func formattedTime(_ ms: Int) -> String {
+        let total = ms / 1000
+        let cents = (ms % 1000) / 10
+        return String(format: "%02d:%02d.%02d", total / 60, total % 60, cents)
     }
 }
 

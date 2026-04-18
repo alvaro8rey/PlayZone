@@ -31,14 +31,16 @@ final class BreakoutGame {
     private(set) var ballPos:  CGPoint
     private(set) var ballVel:  CGPoint
     private(set) var lives = 3
-    private(set) var score = 0
     private(set) var state: BreakoutState = .idle
+    private(set) var displaySeconds: Int = 0
+    private(set) var finalMilliseconds: Int = 0
 
     var paddleW:  CGFloat { difficulty.breakoutPaddleW }
     var brickRows: Int    { difficulty.breakoutBrickRows }
 
     private var timer: Timer?
     private var lastTick: Date?
+    private var startDate: Date?
 
     // MARK: - Init / Reset
 
@@ -57,7 +59,9 @@ final class BreakoutGame {
         ballPos = CGPoint(x: Self.boardW / 2, y: Self.paddleY - 40)
         ballVel = Self.initialVelocity(difficulty)
         lives = 3
-        score = 0
+        displaySeconds = 0
+        finalMilliseconds = 0
+        startDate = nil
         state = .idle
     }
 
@@ -70,7 +74,9 @@ final class BreakoutGame {
     func startIfNeeded() {
         guard state == .idle else { return }
         state = .playing
-        lastTick = Date()
+        let now = Date()
+        lastTick = now
+        if startDate == nil { startDate = now }
         let t = Timer(timeInterval: 1 / 60, repeats: true) { [weak self] _ in self?.tick() }
         RunLoop.main.add(t, forMode: .common)
         timer = t
@@ -83,6 +89,9 @@ final class BreakoutGame {
         let now = Date()
         let dt = CGFloat(min(now.timeIntervalSince(lastTick ?? now), 1.0 / 30))
         lastTick = now
+        if let start = startDate {
+            displaySeconds = Int(now.timeIntervalSince(start))
+        }
         step(dt: dt)
     }
 
@@ -158,6 +167,9 @@ final class BreakoutGame {
 
         // Win
         if bricks.allSatisfy({ $0.allSatisfy { !$0 } }) {
+            if let start = startDate {
+                finalMilliseconds = Int(Date().timeIntervalSince(start) * 1000)
+            }
             state = .won
             stopTimer()
         }
