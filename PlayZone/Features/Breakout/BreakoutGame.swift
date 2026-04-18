@@ -142,7 +142,6 @@ final class BreakoutGame {
                       pos.y - Self.ballR < br.maxY else { continue }
 
                 bricks[row][col] = false
-                score += (brickRows - row) * 10
 
                 let prevPos = CGPoint(x: pos.x - vel.x * dt, y: pos.y - vel.y * dt)
                 let fromSide = prevPos.x + Self.ballR <= br.minX || prevPos.x - Self.ballR >= br.maxX
