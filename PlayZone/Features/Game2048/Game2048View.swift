@@ -34,7 +34,7 @@ struct Game2048View: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbarColorScheme(.dark, for: .navigationBar)
         .background(SwipeBackDisabler())
-        .gesture(swipeGesture)
+        .highPriorityGesture(swipeGesture)
         .onChange(of: game.hasWon) { _, won in if won { showWin = true } }
         .onChange(of: game.isOver) { _, over in
             if over {
@@ -199,20 +199,3 @@ struct Tile2048: View {
     }
 }
 
-// MARK: - Swipe-back disabler
-
-private struct SwipeBackDisabler: UIViewControllerRepresentable {
-    func makeUIViewController(context: Context) -> UIViewController { DisablerVC() }
-    func updateUIViewController(_ vc: UIViewController, context: Context) {}
-
-    private class DisablerVC: UIViewController {
-        override func viewWillAppear(_ animated: Bool) {
-            super.viewWillAppear(animated)
-            navigationController?.interactivePopGestureRecognizer?.isEnabled = false
-        }
-        override func viewWillDisappear(_ animated: Bool) {
-            super.viewWillDisappear(animated)
-            navigationController?.interactivePopGestureRecognizer?.isEnabled = true
-        }
-    }
-}
