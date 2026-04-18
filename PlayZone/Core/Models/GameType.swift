@@ -10,6 +10,7 @@ enum GameType: String, CaseIterable, Codable, Identifiable {
     case snake       = "Snake"
     case wordle      = "Wordle"
     case breakout    = "Breakout"
+    case colorMatch  = "Color Mix"
 
     var id: String { rawValue }
 
@@ -22,6 +23,7 @@ enum GameType: String, CaseIterable, Codable, Identifiable {
         case .snake:       return "arrow.triangle.turn.up.right.diamond.fill"
         case .wordle:      return "textformat.abc"
         case .breakout:    return "square.split.2x2"
+        case .colorMatch:  return "paintpalette.fill"
         }
     }
 
@@ -34,6 +36,7 @@ enum GameType: String, CaseIterable, Codable, Identifiable {
         case .snake:       return "Guía la serpiente y come sin chocar"
         case .wordle:      return "Adivina la palabra oculta en 6 intentos"
         case .breakout:    return "Destruye todos los bloques con la pelota"
+        case .colorMatch:  return "Mezcla RGB para igualar el color objetivo"
         }
     }
 
@@ -46,13 +49,14 @@ enum GameType: String, CaseIterable, Codable, Identifiable {
         case .snake:       return [Color(hex: "14B8A6"), Color(hex: "0F766E")]
         case .wordle:      return [Color(hex: "F59E0B"), Color(hex: "B45309")]
         case .breakout:    return [Color(hex: "EC4899"), Color(hex: "9D174D")]
+        case .colorMatch:  return [Color(hex: "F43F5E"), Color(hex: "8B5CF6")]
         }
     }
 
     var rankingType: RankingType {
         switch self {
         case .minesweeper, .sudoku, .memory: return .time
-        case .game2048, .snake:              return .score
+        case .game2048, .snake, .colorMatch: return .score
         case .breakout:                      return .time
         case .wordle:                        return .streak
         }
