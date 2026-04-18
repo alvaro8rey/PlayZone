@@ -1,7 +1,5 @@
 import SwiftUI
 
-enum SwipeDirection { case up, down, left, right }
-
 /// Adds a UIPanGestureRecognizer directly to the UINavigationController's view.
 /// The delegate's shouldBeRequiredToFailBy makes the navigation's
 /// UIScreenEdgePanGestureRecognizer wait for our gesture to fail first.
