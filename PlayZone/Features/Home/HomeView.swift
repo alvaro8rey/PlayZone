@@ -170,6 +170,7 @@ struct GameCard: View {
         case .memory:      path.append(Route.memory(difficulty))
         case .snake:       path.append(Route.snake(difficulty))
         case .wordle:      path.append(Route.wordle(difficulty))
+        case .breakout:    path.append(Route.breakout(difficulty))
         }
     }
 }
