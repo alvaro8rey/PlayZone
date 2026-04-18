@@ -12,12 +12,22 @@ struct HomeView: View {
                            startPoint: .top, endPoint: .bottom)
                 .ignoresSafeArea()
 
-            ScrollView {
-                VStack(spacing: 28) {
-                    header
-                    gamesGrid
+            ScrollViewReader { proxy in
+                ScrollView {
+                    VStack(spacing: 28) {
+                        header
+                        gamesGrid
+                    }
+                    .padding(.bottom, 32)
                 }
-                .padding(.bottom, 32)
+                .onChange(of: expandedGame) { _, game in
+                    guard let game else { return }
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                        withAnimation(.easeInOut(duration: 0.3)) {
+                            proxy.scrollTo(game, anchor: .center)
+                        }
+                    }
+                }
             }
         }
         .navigationBarHidden(true)
@@ -54,6 +64,7 @@ struct HomeView: View {
         LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 16) {
             ForEach(GameType.allCases) { game in
                 GameCard(game: game, path: $path, expandedGame: $expandedGame)
+                    .id(game)
             }
         }
         .padding(.horizontal, 16)
