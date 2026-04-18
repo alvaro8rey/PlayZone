@@ -25,15 +25,6 @@ struct ColorMatchView: View {
         Color(red: red / 255, green: green / 255, blue: blue / 255)
     }
 
-    private var similarity: Int {
-        let dr = game.currentRound.targetR - red
-        let dg = game.currentRound.targetG - green
-        let db = game.currentRound.targetB - blue
-        let dist = (dr * dr + dg * dg + db * db).squareRoot()
-        let pct  = max(0.0, 1 - dist / (255 * 255 * 3.0).squareRoot())
-        return Int((pct * 100).rounded())
-    }
-
     // MARK: - Body
 
     var body: some View {
@@ -123,17 +114,6 @@ struct ColorMatchView: View {
             colorSlider(label: "R", value: $red,   accent: Color(hex: "EF4444"))
             colorSlider(label: "G", value: $green, accent: Color(hex: "22C55E"))
             colorSlider(label: "B", value: $blue,  accent: Color(hex: "3B82F6"))
-
-            Divider().background(Color(hex: "334155"))
-
-            HStack {
-                Image(systemName: "scope")
-                    .foregroundStyle(Color(hex: "94A3B8"))
-                Text("Similitud: \(similarity)%")
-                    .font(.subheadline.bold())
-                    .foregroundStyle(scoreColor(similarity))
-                Spacer()
-            }
         }
         .padding(16)
         .background(Color(hex: "1E293B"))
