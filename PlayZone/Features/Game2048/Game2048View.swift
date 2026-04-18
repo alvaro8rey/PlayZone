@@ -97,21 +97,26 @@ struct Game2048View: View {
         GeometryReader { geo in
             let boardSize = geo.size.width
             let gap: CGFloat = 8
-            let cell = (boardSize - gap * CGFloat(game.size + 1)) / CGFloat(game.size)
+            // Guard against zero/negative during navigation transitions
+            let cell = boardSize > 0
+                ? (boardSize - gap * CGFloat(game.size + 1)) / CGFloat(game.size)
+                : 0
 
             ZStack {
                 RoundedRectangle(cornerRadius: 12).fill(Color(hex: "334155"))
 
-                VStack(spacing: gap) {
-                    ForEach(0..<game.size, id: \.self) { row in
-                        HStack(spacing: gap) {
-                            ForEach(0..<game.size, id: \.self) { col in
-                                Tile2048(value: game.board[row][col], size: cell)
+                if cell > 0 {
+                    VStack(spacing: gap) {
+                        ForEach(0..<game.size, id: \.self) { row in
+                            HStack(spacing: gap) {
+                                ForEach(0..<game.size, id: \.self) { col in
+                                    Tile2048(value: game.board[row][col], size: cell)
+                                }
                             }
                         }
                     }
+                    .padding(gap)
                 }
-                .padding(gap)
             }
             .frame(width: boardSize, height: boardSize)
         }
