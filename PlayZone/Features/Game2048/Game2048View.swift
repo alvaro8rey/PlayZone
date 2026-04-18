@@ -33,8 +33,16 @@ struct Game2048View: View {
         .navigationTitle("2048 · \(difficulty.rawValue)")
         .navigationBarTitleDisplayMode(.inline)
         .toolbarColorScheme(.dark, for: .navigationBar)
-        .background(SwipeBackDisabler())
-        .highPriorityGesture(swipeGesture)
+        .background(
+            SwipeCapture { dir in
+                switch dir {
+                case .up:    game.swipe(.up)
+                case .down:  game.swipe(.down)
+                case .left:  game.swipe(.left)
+                case .right: game.swipe(.right)
+                }
+            }
+        )
         .onChange(of: game.hasWon) { _, won in if won { showWin = true } }
         .onChange(of: game.isOver) { _, over in
             if over {
@@ -143,17 +151,6 @@ struct Game2048View: View {
             .frame(width: 64, height: 48)
             .background(Color(hex: "1E293B"))
             .clipShape(RoundedRectangle(cornerRadius: 12))
-    }
-
-    // MARK: - Swipe Gesture
-
-    private var swipeGesture: some Gesture {
-        DragGesture(minimumDistance: 40)
-            .onEnded { val in
-                let dx = val.translation.width, dy = val.translation.height
-                if abs(dx) > abs(dy) { game.swipe(dx > 0 ? .right : .left) }
-                else                  { game.swipe(dy > 0 ? .down  : .up)   }
-            }
     }
 
     private func submitScore() async {
