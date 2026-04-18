@@ -55,11 +55,14 @@ struct WordleView: View {
             Button("Menú") { path.removeLast(path.count) }
         } message: {
             if game.state == .won {
+                let streakText = game.currentStreak == 1
+                    ? "1 victoria seguida"
+                    : "\(game.currentStreak) victorias seguidas"
                 Text(isNewRecord
-                     ? "🏆 ¡Nuevo récord!  \(game.score) pts\nLa palabra era: \(game.targetWord.uppercased())"
-                     : "\(game.score) pts\nLa palabra era: \(game.targetWord.uppercased())")
+                     ? "🏆 ¡Mejor racha!  \(streakText)\nLa palabra era: \(game.targetWord.uppercased())"
+                     : "Racha: \(streakText)\nLa palabra era: \(game.targetWord.uppercased())")
             } else {
-                Text("La palabra era: \(game.targetWord.uppercased())")
+                Text("Racha rota 💔\nLa palabra era: \(game.targetWord.uppercased())")
             }
         }
     }

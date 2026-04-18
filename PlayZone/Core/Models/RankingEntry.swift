@@ -28,12 +28,15 @@ struct RankingEntry: Identifiable, Codable, Equatable {
 
     var formattedValue: String {
         guard let gameType = GameType(rawValue: game) else { return "\(value)" }
-        if gameType.rankingType == .time {
-            // value is stored in milliseconds
+        switch gameType.rankingType {
+        case .time:
             let totalSeconds = value / 1000
-            let ms = (value % 1000) / 10  // centiseconds for display
+            let ms = (value % 1000) / 10
             return String(format: "%02d:%02d.%02d", totalSeconds / 60, totalSeconds % 60, ms)
+        case .score:
+            return "\(value) pts"
+        case .streak:
+            return value == 1 ? "1 victoria" : "\(value) victorias"
         }
-        return "\(value) pts"
     }
 }

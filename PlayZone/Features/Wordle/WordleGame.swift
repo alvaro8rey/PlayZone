@@ -19,14 +19,18 @@ final class WordleGame {
     private(set) var keyboardState: [Character: LetterState] = [:]
     private(set) var state: WordleState = .playing
     private(set) var isLoading = true
+    private(set) var currentStreak: Int = 0
     private(set) var score: Int = 0
 
     var currentRow: Int { guesses.count }
     var isCurrentGuessFull: Bool { currentTiles.allSatisfy { $0 != nil } }
 
+    private var streakKey: String { "wordle_streak_\(wordLength)" }
+
     init(difficulty: Difficulty) {
         self.wordLength = difficulty.wordleLength
         self.currentTiles = Array(repeating: nil, count: difficulty.wordleLength)
+        self.currentStreak = UserDefaults.standard.integer(forKey: "wordle_streak_\(difficulty.wordleLength)")
         Task { await loadWord() }
     }
 
@@ -96,11 +100,15 @@ final class WordleGame {
         selectedCol = 0
 
         if states.allSatisfy({ $0 == .correct }) {
+            currentStreak += 1
+            UserDefaults.standard.set(currentStreak, forKey: streakKey)
+            score = currentStreak
             state = .won
-            score = max(1, maxAttempts - currentRow + 1) * wordLength * 10
         } else if guesses.count >= maxAttempts {
-            state = .lost
+            currentStreak = 0
+            UserDefaults.standard.set(0, forKey: streakKey)
             score = 0
+            state = .lost
         }
 
         return true

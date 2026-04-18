@@ -28,7 +28,7 @@ final class FirebaseRankingService: RankingService {
     private let col = "rankings"
 
     func save(_ entry: RankingEntry) async throws {
-        let isScore = GameType(rawValue: entry.game)?.rankingType == .score
+        let isHigherBetter = GameType(rawValue: entry.game)?.rankingType != .time
 
         // Query only by game+difficulty (no composite index needed),
         // then filter by playerName in Swift to find the existing document.
@@ -51,7 +51,7 @@ final class FirebaseRankingService: RankingService {
 
         if let best = playerDocs.first {
             let currentValue = best.data()["value"] as? Int ?? 0
-            let isBetter = isScore ? entry.value > currentValue : entry.value < currentValue
+            let isBetter = isHigherBetter ? entry.value > currentValue : entry.value < currentValue
             if isBetter {
                 // Update best document and delete any extra duplicates
                 try await best.reference.setData(payload)
@@ -84,15 +84,16 @@ final class FirebaseRankingService: RankingService {
         }
 
         // Deduplicate: keep only the best entry per player
+        let higherIsBetter = game.rankingType != .time
         let deduped = Dictionary(grouping: entries, by: \.playerName)
             .values
             .compactMap { group -> RankingEntry? in
-                game.rankingType == .score
-                    ? group.max(by: { $0.value < $1.value })   // highest score wins
-                    : group.min(by: { $0.value < $1.value })   // lowest time wins
+                higherIsBetter
+                    ? group.max(by: { $0.value < $1.value })
+                    : group.min(by: { $0.value < $1.value })
             }
 
-        return game.rankingType == .score
+        return higherIsBetter
             ? deduped.sorted { $0.value > $1.value }
             : deduped.sorted { $0.value < $1.value }
     }

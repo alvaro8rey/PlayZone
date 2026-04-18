@@ -30,16 +30,16 @@ final class LocalRankingService: RankingService {
     func save(_ entry: RankingEntry) async throws {
         var entries = load()
         let gameType = GameType(rawValue: entry.game)
-        let isScore = gameType?.rankingType == .score
+        let rankingType = gameType?.rankingType
 
         if let idx = entries.firstIndex(where: {
             $0.playerName == entry.playerName &&
             $0.game == entry.game &&
             $0.difficulty == entry.difficulty
         }) {
-            let isBetter = isScore
-                ? entry.value > entries[idx].value
-                : entry.value < entries[idx].value
+            let isBetter = rankingType == .time
+                ? entry.value < entries[idx].value
+                : entry.value > entries[idx].value
             if isBetter { entries[idx] = entry }
         } else {
             entries.append(entry)

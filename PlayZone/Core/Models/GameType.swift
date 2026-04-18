@@ -1,6 +1,6 @@
 import SwiftUI
 
-enum RankingType { case time, score }
+enum RankingType { case time, score, streak }
 
 enum GameType: String, CaseIterable, Codable, Identifiable {
     case minesweeper = "Buscaminas"
@@ -48,11 +48,16 @@ enum GameType: String, CaseIterable, Codable, Identifiable {
     var rankingType: RankingType {
         switch self {
         case .minesweeper, .sudoku, .memory: return .time
-        case .game2048, .snake, .wordle:     return .score
+        case .game2048, .snake:              return .score
+        case .wordle:                        return .streak
         }
     }
 
     var rankingLabel: String {
-        rankingType == .time ? "Menor tiempo" : "Mayor puntuación"
+        switch rankingType {
+        case .time:   return "Menor tiempo"
+        case .score:  return "Mayor puntuación"
+        case .streak: return "Mejor racha"
+        }
     }
 }
