@@ -11,6 +11,8 @@ enum Route: Hashable {
     case colorMatch(Difficulty)
     case spellingBee(Difficulty)
     case nonogram(Difficulty)
+    case lightsOut(Difficulty)
+    case puzzle15(Difficulty)
     case ranking(GameType)
 }
 
@@ -34,6 +36,8 @@ struct ContentView: View {
                     case .colorMatch(let d):  ColorMatchView(difficulty: d, path: $path)
                     case .spellingBee(let d): SpellingBeeView(difficulty: d, path: $path)
                     case .nonogram(let d):    NonogramView(difficulty: d, path: $path)
+                    case .lightsOut(let d):   LightsOutView(difficulty: d, path: $path)
+                    case .puzzle15(let d):    FifteenPuzzleView(difficulty: d, path: $path)
                     case .ranking(let g):     RankingView(game: g)
                     }
                 }

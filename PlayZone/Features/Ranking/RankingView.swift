@@ -70,7 +70,7 @@ struct RankingView: View {
 
     private var infoRow: some View {
         HStack {
-            Image(systemName: game.rankingType == .time ? "timer" : "star.fill")
+            Image(systemName: game.rankingIcon)
             Text(game.rankingLabel)
             Spacer()
             if let pos = myPosition {

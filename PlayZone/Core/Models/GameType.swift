@@ -1,6 +1,6 @@
 import SwiftUI
 
-enum RankingType { case time, score, streak }
+enum RankingType { case time, score, streak, moves }
 
 enum GameType: String, CaseIterable, Codable, Identifiable {
     case minesweeper = "Buscaminas"
@@ -13,6 +13,8 @@ enum GameType: String, CaseIterable, Codable, Identifiable {
     case colorMatch  = "Color Mix"
     case spellingBee = "Spelling Bee"
     case nonogram    = "Nonograma"
+    case lightsOut   = "Lights Out"
+    case puzzle15    = "Puzzle 15"
 
     var id: String { rawValue }
 
@@ -28,6 +30,8 @@ enum GameType: String, CaseIterable, Codable, Identifiable {
         case .colorMatch:  return "paintpalette.fill"
         case .spellingBee: return "hexagon.fill"
         case .nonogram:    return "square.grid.2x2.fill"
+        case .lightsOut:   return "lightbulb.fill"
+        case .puzzle15:    return "number.square.fill"
         }
     }
 
@@ -43,6 +47,8 @@ enum GameType: String, CaseIterable, Codable, Identifiable {
         case .colorMatch:  return "Mezcla RGB para igualar el color objetivo"
         case .spellingBee: return "Forma palabras de 5 letras con el panal"
         case .nonogram:    return "Rellena la cuadrícula siguiendo las pistas"
+        case .lightsOut:   return "Apaga todas las luces en el menor número de movimientos"
+        case .puzzle15:    return "Ordena las fichas deslizándolas al hueco vacío"
         }
     }
 
@@ -58,16 +64,19 @@ enum GameType: String, CaseIterable, Codable, Identifiable {
         case .colorMatch:  return [Color(hex: "F43F5E"), Color(hex: "8B5CF6")]
         case .spellingBee: return [Color(hex: "EAB308"), Color(hex: "92400E")]
         case .nonogram:    return [Color(hex: "6366F1"), Color(hex: "4338CA")]
+        case .lightsOut:   return [Color(hex: "FBBF24"), Color(hex: "D97706")]
+        case .puzzle15:    return [Color(hex: "06B6D4"), Color(hex: "0E7490")]
         }
     }
 
     var rankingType: RankingType {
         switch self {
         case .minesweeper, .sudoku, .memory,
-             .nonogram, .breakout:           return .time
+             .nonogram, .breakout, .puzzle15: return .time
         case .game2048, .snake, .colorMatch,
-             .spellingBee:                   return .score
-        case .wordle:                        return .streak
+             .spellingBee:                    return .score
+        case .wordle:                         return .streak
+        case .lightsOut:                      return .moves
         }
     }
 
@@ -76,6 +85,16 @@ enum GameType: String, CaseIterable, Codable, Identifiable {
         case .time:   return "Menor tiempo"
         case .score:  return "Mayor puntuación"
         case .streak: return "Mejor racha"
+        case .moves:  return "Menos movimientos"
+        }
+    }
+
+    var rankingIcon: String {
+        switch rankingType {
+        case .time:   return "timer"
+        case .score:  return "star.fill"
+        case .streak: return "flame.fill"
+        case .moves:  return "hand.tap.fill"
         }
     }
 }

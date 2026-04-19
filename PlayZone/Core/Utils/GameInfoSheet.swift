@@ -93,6 +93,10 @@ extension GameType {
             return "Forma palabras de exactamente 5 letras usando solo los 7 caracteres del panal. La letra central (dorada) debe aparecer en cada palabra. Puedes usar la misma letra más de una vez. Toca o arrastra hasta el hexágono deseado y suelta para seleccionarlo."
         case .nonogram:
             return "Rellena las casillas de la cuadrícula siguiendo las pistas numéricas de filas y columnas. Los números indican grupos consecutivos de casillas rellenas separados por al menos una vacía. Toca para rellenar, toca de nuevo para marcar con X (descartada), toca una tercera vez para vaciar."
+        case .lightsOut:
+            return "Toca cualquier celda para cambiar su estado (encendida/apagada) junto con el de sus vecinas arriba, abajo, izquierda y derecha. El objetivo es apagar todas las luces. El puzzle siempre tiene solución. Cuantos menos movimientos uses, mejor."
+        case .puzzle15:
+            return "Desliza las fichas numeradas al hueco vacío para ordenarlas de menor a mayor de izquierda a derecha y de arriba a abajo, dejando el hueco en la última posición. Solo puedes mover fichas adyacentes al hueco. Complétalo lo más rápido posible."
         }
     }
 
@@ -118,6 +122,10 @@ extension GameType {
             return "El ranking es el número máximo de palabras distintas encontradas en una misma partida. Cuantas más palabras encuentres antes de iniciar un nuevo juego, mejor tu posición. Se guarda el récord por dificultad."
         case .nonogram:
             return "Se registra el tiempo total que tardas en resolver el nonograma completo. Cuanto menos tardes, mejor tu posición. Tu mejor marca se guarda por nivel de dificultad (5×5, 10×10, 15×15)."
+        case .lightsOut:
+            return "Se registra el número de movimientos que necesitas para apagar todas las luces. Cuantos menos movimientos, mejor tu posición. Tu mejor marca se guarda por tamaño de tablero (3×3, 5×5, 7×7)."
+        case .puzzle15:
+            return "Se registra el tiempo total que tardas en ordenar todas las fichas correctamente. Cuanto menos tardes, mejor tu posición. Tu mejor marca se guarda por dificultad (8, 15 y 24-puzzle)."
         }
     }
 }

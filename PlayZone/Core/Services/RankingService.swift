@@ -37,7 +37,8 @@ final class LocalRankingService: RankingService {
             $0.game == entry.game &&
             $0.difficulty == entry.difficulty
         }) {
-            let isBetter = rankingType == .time
+            let lowerIsBetter = rankingType == .time || rankingType == .moves
+            let isBetter = lowerIsBetter
                 ? entry.value < entries[idx].value
                 : entry.value > entries[idx].value
             if isBetter { entries[idx] = entry }
@@ -49,7 +50,8 @@ final class LocalRankingService: RankingService {
 
     func fetch(game: GameType, difficulty: Difficulty) async throws -> [RankingEntry] {
         let filtered = load().filter { $0.game == game.rawValue && $0.difficulty == difficulty.rawValue }
-        return game.rankingType == .time
+        let lowerIsBetter = game.rankingType == .time || game.rankingType == .moves
+        return lowerIsBetter
             ? filtered.sorted { $0.value < $1.value }
             : filtered.sorted { $0.value > $1.value }
     }

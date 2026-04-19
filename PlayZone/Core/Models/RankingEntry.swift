@@ -37,6 +37,8 @@ struct RankingEntry: Identifiable, Codable, Equatable {
             return "\(value) pts"
         case .streak:
             return value == 1 ? "1 victoria" : "\(value) victorias"
+        case .moves:
+            return value == 1 ? "1 movimiento" : "\(value) movimientos"
         }
     }
 }
