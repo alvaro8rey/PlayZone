@@ -83,21 +83,31 @@ struct NonogramView: View {
 
     // MARK: - Puzzle layout
 
+    // Compact per-clue-number slot size, tuned per difficulty:
+    //   easy  5×5  → 18 pt slot, 14 pt font
+    //   medium 10×10 → 14 pt slot, 11 pt font
+    //   hard  15×15 → 11 pt slot,  9 pt font
+    // rowClueW = maxGroupsInAnyRow  × slot + (n-1)×1 spacing + 4 gap to grid
+    // colClueH = maxGroupsInAnyCol  × slot + (n-1)×1 spacing + 4 gap to grid
+    // This is ~40 % narrower than the previous formula, giving ~20–25 % more cell width.
+
     @ViewBuilder
     private func puzzle(in size: CGSize) -> some View {
-        let n          = game.size
-        let font: CGFloat = n <= 5 ? 15 : n <= 10 ? 12 : 10
-        let numH: CGFloat = font + 4
-        let numW: CGFloat = font + 6
+        let n = game.size
+        let font:  CGFloat = n <= 5 ? 14 : n <= 10 ? 11 : 9
+        let slot:  CGFloat = n <= 5 ? 18 : n <= 10 ? 14 : 11
 
-        let maxRowLen  = game.rowClues.map(\.count).max() ?? 1
-        let maxColLen  = game.colClues.map(\.count).max() ?? 1
-        let rowClueW   = CGFloat(maxRowLen) * numW + CGFloat(max(0, maxRowLen - 1)) * 2 + 8
-        let colClueH   = CGFloat(maxColLen) * numH + CGFloat(max(0, maxColLen - 1)) * 2 + 8
+        let maxRowLen = game.rowClues.map(\.count).max() ?? 1
+        let maxColLen = game.colClues.map(\.count).max() ?? 1
 
+        // Total space for clues = numCount × slot + (numCount-1) × 1pt gap + 4pt gap to grid
+        let rowClueW = CGFloat(maxRowLen) * slot + CGFloat(max(0, maxRowLen - 1)) + 4
+        let colClueH = CGFloat(maxColLen) * slot + CGFloat(max(0, maxColLen - 1)) + 4
+
+        // Separator widths between cells (1 pt normal, 2 pt at every 5th boundary)
         let gaps   = max(0, n - 1)
         let thick  = n > 5 ? gaps / 5 : 0
-        let sepPts = CGFloat(gaps - thick) * 1 + CGFloat(thick) * 2
+        let sepPts = CGFloat(gaps - thick) + CGFloat(thick) * 2
 
         let cs = max(16, min(
             (size.width  - rowClueW - sepPts) / CGFloat(n),
@@ -105,7 +115,7 @@ struct NonogramView: View {
         ))
 
         VStack(alignment: .leading, spacing: 0) {
-            // Column clue header row
+            // Column clue header
             HStack(spacing: 0) {
                 Color.clear.frame(width: rowClueW, height: colClueH)
                 ForEach(0..<n, id: \.self) { col in
@@ -114,9 +124,7 @@ struct NonogramView: View {
                             .fill(n > 5 && col % 5 == 0 ? Color(hex: "64748B") : Color(hex: "334155"))
                             .frame(width: n > 5 && col % 5 == 0 ? 2 : 1, height: colClueH)
                     }
-                    colClueCell(col: col, maxLen: maxColLen,
-                                cellW: cs, clueH: colClueH,
-                                font: font, numH: numH)
+                    colClueCell(col: col, maxLen: maxColLen, cellW: cs, clueH: colClueH, font: font, slot: slot)
                 }
             }
 
@@ -128,8 +136,7 @@ struct NonogramView: View {
                         .frame(height: n > 5 && row % 5 == 0 ? 2 : 1)
                 }
                 HStack(spacing: 0) {
-                    rowClueCell(row: row, maxLen: maxRowLen,
-                                cellH: cs, clueW: rowClueW, font: font)
+                    rowClueCell(row: row, maxLen: maxRowLen, cellH: cs, clueW: rowClueW, font: font, slot: slot)
                     ForEach(0..<n, id: \.self) { col in
                         if col > 0 {
                             Rectangle()
@@ -143,37 +150,46 @@ struct NonogramView: View {
         }
     }
 
+    // Numbers bottom-aligned, one per slot row, centred in the cell column width.
     private func colClueCell(col: Int, maxLen: Int,
                              cellW: CGFloat, clueH: CGFloat,
-                             font: CGFloat, numH: CGFloat) -> some View {
+                             font: CGFloat, slot: CGFloat) -> some View {
         let nums = game.colClues[col]
-        let pad  = maxLen - nums.count
-        return VStack(spacing: 2) {
-            ForEach(0..<pad, id: \.self) { _ in Color.clear.frame(height: numH) }
+        return VStack(spacing: 1) {
+            Spacer(minLength: 0)
             ForEach(Array(nums.enumerated()), id: \.offset) { _, n in
                 Text(n == 0 ? "·" : "\(n)")
-                    .font(.system(size: font, weight: .bold))
+                    .font(.system(size: font, weight: .bold, design: .monospaced))
                     .foregroundStyle(n == 0 ? Color(hex: "475569") : .white)
-                    .frame(height: numH)
+                    .frame(width: cellW, height: slot)
+                    .minimumScaleFactor(0.8)
+                    .lineLimit(1)
             }
+            // 4 pt breathing room above the grid
+            Color.clear.frame(height: 4)
         }
         .frame(width: cellW, height: clueH)
     }
 
+    // Numbers right-aligned, one per slot column, row centred in the cell height.
     private func rowClueCell(row: Int, maxLen: Int,
-                             cellH: CGFloat, clueW: CGFloat, font: CGFloat) -> some View {
+                             cellH: CGFloat, clueW: CGFloat,
+                             font: CGFloat, slot: CGFloat) -> some View {
         let nums = game.rowClues[row]
-        return HStack(spacing: 3) {
+        return HStack(spacing: 1) {
             Spacer(minLength: 0)
             ForEach(Array(nums.enumerated()), id: \.offset) { _, n in
                 Text(n == 0 ? "·" : "\(n)")
-                    .font(.system(size: font, weight: .bold))
+                    .font(.system(size: font, weight: .bold, design: .monospaced))
                     .foregroundStyle(n == 0 ? Color(hex: "475569") : .white)
+                    .frame(width: slot, height: cellH)
+                    .minimumScaleFactor(0.8)
                     .lineLimit(1)
             }
+            // 4 pt breathing room to the right of the numbers, before the grid
+            Color.clear.frame(width: 4)
         }
         .frame(width: clueW, height: cellH)
-        .padding(.trailing, 4)
     }
 
     private func gameCell(row: Int, col: Int, size: CGFloat) -> some View {
