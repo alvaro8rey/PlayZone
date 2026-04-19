@@ -220,6 +220,7 @@ struct FeaturedCard: View {
                             Text(game.description)
                                 .font(.caption)
                                 .foregroundStyle(.white.opacity(0.8))
+                                .multilineTextAlignment(.leading)
                                 .lineLimit(2)
                             HStack(spacing: 4) {
                                 Image(systemName: game.rankingIcon).font(.caption2)
