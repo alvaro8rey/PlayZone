@@ -174,10 +174,10 @@ struct SnakeView: View {
 
     private var startOverlay: some View {
         VStack(spacing: 16) {
-            Image(systemName: "arrow.up")
+            Image(systemName: "play.circle.fill")
                 .font(.system(size: 64))
                 .foregroundStyle(Color(hex: "14B8A6"))
-            Text("Desliza para\nempezar")
+            Text("Toca para\nempezar")
                 .font(.headline)
                 .foregroundStyle(.white)
                 .multilineTextAlignment(.center)
@@ -185,6 +185,7 @@ struct SnakeView: View {
         .padding(32)
         .background(.ultraThinMaterial)
         .clipShape(RoundedRectangle(cornerRadius: 20))
+        .onTapGesture { game.start() }
     }
 
     private func startIfNeeded() {
