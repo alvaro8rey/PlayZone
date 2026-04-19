@@ -213,7 +213,11 @@ private extension NonogramGame {
 
             // Base case: all groups placed
             if gi == clue.count {
-                for i in pos..<n { if line[i] == .on { return } }  // trailing .on = invalid
+                // pos can equal n+1 when the last group ends on the last cell (start+len=n).
+                // Guard against the invalid range pos..<n when pos > n.
+                if pos < n {
+                    for i in pos..<n { if line[i] == .on { return } }  // trailing .on = invalid
+                }
                 // Record this placement into the intersection arrays
                 for c in 0..<n {
                     if current[c] { defOff[c] = false }
