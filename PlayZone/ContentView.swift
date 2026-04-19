@@ -9,6 +9,7 @@ enum Route: Hashable {
     case wordle(Difficulty)
     case breakout(Difficulty)
     case colorMatch(Difficulty)
+    case spellingBee(Difficulty)
     case ranking(GameType)
 }
 
@@ -30,6 +31,7 @@ struct ContentView: View {
                     case .wordle(let d):      WordleView(difficulty: d, path: $path)
                     case .breakout(let d):    BreakoutView(difficulty: d, path: $path)
                     case .colorMatch(let d):  ColorMatchView(difficulty: d, path: $path)
+                    case .spellingBee(let d): SpellingBeeView(difficulty: d, path: $path)
                     case .ranking(let g):     RankingView(game: g)
                     }
                 }

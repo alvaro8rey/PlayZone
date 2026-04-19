@@ -183,6 +183,7 @@ struct GameCard: View {
         case .wordle:      path.append(Route.wordle(difficulty))
         case .breakout:    path.append(Route.breakout(difficulty))
         case .colorMatch:  path.append(Route.colorMatch(difficulty))
+        case .spellingBee: path.append(Route.spellingBee(difficulty))
         }
     }
 }
