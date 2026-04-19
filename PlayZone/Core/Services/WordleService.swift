@@ -52,8 +52,14 @@ actor WordleService {
         guard let json = try? JSONSerialization.jsonObject(with: data) else {
             throw URLError(.cannotParseResponse)
         }
-        // Object: {"palabra":"…"} or {"word":"…"}
         if let obj = json as? [String: Any] {
+            // {"data": {"word": "…"}, "ok": true}
+            if let nested = obj["data"] as? [String: Any] {
+                for key in ["word", "palabra", "term"] {
+                    if let w = nested[key] as? String, !w.isEmpty { return w }
+                }
+            }
+            // {"palabra":"…"} or {"word":"…"}
             for key in ["palabra", "word", "term", "texto"] {
                 if let w = obj[key] as? String, !w.isEmpty { return w }
             }
@@ -62,7 +68,7 @@ actor WordleService {
         if let arr = json as? [Any] {
             if let w = arr.first as? String, !w.isEmpty { return w }
             if let obj = arr.first as? [String: Any] {
-                for key in ["palabra", "word", "term"] {
+                for key in ["word", "palabra", "term"] {
                     if let w = obj[key] as? String, !w.isEmpty { return w }
                 }
             }
