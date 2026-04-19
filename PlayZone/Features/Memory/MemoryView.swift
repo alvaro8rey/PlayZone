@@ -39,6 +39,7 @@ struct MemoryView: View {
             }
             .padding(.top, 8)
         }
+        .background(SwipeBackDisabler())
         .overlay {
             if navigatedToRanking {
                 PostRankingOverlay(

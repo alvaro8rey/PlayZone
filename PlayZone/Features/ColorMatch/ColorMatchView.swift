@@ -54,6 +54,7 @@ struct ColorMatchView: View {
             .padding(.horizontal, 20)
             .padding(.top, 8)
         }
+        .background(SwipeBackDisabler())
         .overlay {
             if navigatedToRanking {
                 PostRankingOverlay(

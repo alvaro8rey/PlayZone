@@ -37,6 +37,7 @@ struct MinesweeperView: View {
                 }
             }
         }
+        .background(SwipeBackDisabler())
         .overlay {
             if navigatedToRanking {
                 PostRankingOverlay(

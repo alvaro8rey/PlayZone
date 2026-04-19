@@ -39,6 +39,7 @@ struct WordleView: View {
                 }
             }
         }
+        .background(SwipeBackDisabler())
         .overlay {
             if navigatedToRanking {
                 PostRankingOverlay(

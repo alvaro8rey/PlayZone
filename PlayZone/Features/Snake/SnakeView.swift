@@ -36,6 +36,7 @@ struct SnakeView: View {
                 startOverlay
             }
         }
+        .background(SwipeBackDisabler())
         .overlay {
             if navigatedToRanking {
                 PostRankingOverlay(

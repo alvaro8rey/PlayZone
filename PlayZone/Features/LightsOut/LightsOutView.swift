@@ -35,6 +35,7 @@ struct LightsOutView: View {
             .padding(.top, 8)
             .padding(.bottom, 20)
         }
+        .background(SwipeBackDisabler())
         .overlay {
             if navigatedToRanking {
                 PostRankingOverlay(

@@ -35,6 +35,7 @@ struct FifteenPuzzleView: View {
             .padding(.top, 8)
             .padding(.bottom, 16)
         }
+        .background(SwipeBackDisabler())
         .overlay {
             if navigatedToRanking {
                 PostRankingOverlay(

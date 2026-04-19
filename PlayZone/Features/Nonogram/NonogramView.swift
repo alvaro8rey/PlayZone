@@ -61,6 +61,7 @@ struct NonogramView: View {
             .padding(.top, 8)
             .padding(.bottom, 8)
         }
+        .background(SwipeBackDisabler())
         .overlay {
             if navigatedToRanking {
                 PostRankingOverlay(
