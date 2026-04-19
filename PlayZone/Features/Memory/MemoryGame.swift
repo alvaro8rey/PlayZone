@@ -2,7 +2,7 @@ import Foundation
 
 struct MemoryCard: Identifiable {
     let id: Int
-    let emoji: String
+    let symbol: String
     var isFaceUp: Bool = false
     var isMatched: Bool = false
 }
@@ -24,10 +24,13 @@ final class MemoryGame {
 
     let totalPairs: Int
 
-    private static let emojis = [
-        "🐶","🐱","🐭","🐹","🐰","🦊","🐻","🐼",
-        "🐨","🐯","🦁","🐮","🐷","🐸","🐙","🦋",
-        "🌺","⭐️","🎸","🚀","🎯","💎","🔮","🎪"
+    private static let symbols = [
+        "star.fill", "heart.fill", "sun.max.fill", "moon.fill",
+        "cloud.fill", "flame.fill", "leaf.fill", "sparkles",
+        "bolt.fill", "bell.fill", "gift.fill", "music.note",
+        "gamecontroller.fill", "bicycle", "target", "crown.fill",
+        "diamond.fill", "shield.fill", "checkmark.circle.fill", "exclamationmark.circle.fill",
+        "star.circle.fill", "heart.circle.fill", "square.fill", "triangle.fill"
     ]
 
     init(difficulty: Difficulty) {
@@ -37,8 +40,8 @@ final class MemoryGame {
         case .medium: totalPairs = 10
         case .hard:   totalPairs = 15
         }
-        let chosen = Array(Self.emojis.prefix(totalPairs))
-        let pairs = (chosen + chosen).enumerated().map { MemoryCard(id: $0.offset, emoji: $0.element) }
+        let chosen = Array(Self.symbols.prefix(totalPairs))
+        let pairs = (chosen + chosen).enumerated().map { MemoryCard(id: $0.offset, symbol: $0.element) }
         cards = pairs.shuffled()
         startTimer()
     }
@@ -53,7 +56,7 @@ final class MemoryGame {
             cards[idx].isFaceUp = true
             moves += 1
 
-            if cards[first].emoji == cards[idx].emoji {
+            if cards[first].symbol == cards[idx].symbol {
                 cards[first].isMatched = true
                 cards[idx].isMatched = true
                 matchedPairs += 1

@@ -142,8 +142,9 @@ struct MemoryCardView: View {
                     .fill(card.isMatched
                           ? LinearGradient(colors: [Color(hex: "6D28D9"), Color(hex: "A855F7")], startPoint: .topLeading, endPoint: .bottomTrailing)
                           : LinearGradient(colors: [Color(hex: "4C1D95"), Color(hex: "7C3AED")], startPoint: .topLeading, endPoint: .bottomTrailing))
-                Text(card.emoji)
-                    .font(.system(size: 32))
+                Image(systemName: card.symbol)
+                    .font(.system(size: 28, weight: .semibold))
+                    .foregroundStyle(.white)
             } else {
                 RoundedRectangle(cornerRadius: 12)
                     .fill(LinearGradient(colors: [Color(hex: "1E293B"), Color(hex: "334155")], startPoint: .topLeading, endPoint: .bottomTrailing))
