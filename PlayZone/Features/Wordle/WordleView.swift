@@ -162,12 +162,15 @@ struct WordleKeyboard: View {
         VStack(spacing: 6) {
             ForEach(0..<rows.count, id: \.self) { rowIdx in
                 HStack(spacing: 4) {
+                    Spacer()
+
                     ForEach(Array(rows[rowIdx]), id: \.self) { letter in
-                        let state = game.keyboardState[letter] ?? .unknown
+                        let lowerLetter = Character(letter.lowercased())
+                        let state = game.keyboardState[lowerLetter] ?? .unknown
                         let isDisabled = state != .unknown || game.state != .playing
 
                         Button {
-                            onLetter(letter.lowercased().first!)
+                            onLetter(lowerLetter)
                             if game.isCurrentGuessFull {
                                 _ = game.submitGuess()
                             }
@@ -182,8 +185,6 @@ struct WordleKeyboard: View {
                         .disabled(isDisabled)
                     }
 
-                    Spacer()
-
                     if rowIdx == 2 {
                         Button { onDelete() } label: {
                             Image(systemName: "delete.left.fill")
@@ -195,6 +196,8 @@ struct WordleKeyboard: View {
                         }
                         .disabled(game.state != .playing)
                     }
+
+                    Spacer()
                 }
             }
         }
