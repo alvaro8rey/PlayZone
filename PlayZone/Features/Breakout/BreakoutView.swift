@@ -50,7 +50,8 @@ struct BreakoutView: View {
         }
         .alert("¡Ganaste! 🎉", isPresented: $showWin) {
             Button("Nuevo juego") { game.reset() }
-            Button("Menú") { path.removeLast(path.count) }
+            Button("Ver Ranking") { path.append(Route.ranking(.breakout)) }
+            Button("Menú", role: .cancel) { path.removeLast(path.count) }
         } message: {
             Text(isNewRecord
                  ? "🏆 ¡Nuevo récord!  \(formattedTime(game.finalMilliseconds))"
@@ -58,7 +59,8 @@ struct BreakoutView: View {
         }
         .alert("Game Over", isPresented: $showOver) {
             Button("Reintentar") { game.reset() }
-            Button("Menú") { path.removeLast(path.count) }
+            Button("Ver Ranking") { path.append(Route.ranking(.breakout)) }
+            Button("Menú", role: .cancel) { path.removeLast(path.count) }
         } message: {
             Text("Se acabaron las vidas")
         }

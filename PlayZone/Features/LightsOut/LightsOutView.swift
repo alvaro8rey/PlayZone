@@ -55,7 +55,8 @@ struct LightsOutView: View {
         }
         .alert("¡Todas las luces apagadas! 🎉", isPresented: $showResult) {
             Button("Nuevo juego") { game.reset() }
-            Button("Menú") { path.removeLast(path.count) }
+            Button("Ver Ranking") { path.append(Route.ranking(.lightsOut)) }
+            Button("Menú", role: .cancel) { path.removeLast(path.count) }
         } message: {
             Text(isNewRecord
                  ? "🏆 ¡Nuevo récord! \(game.moves) movimientos"

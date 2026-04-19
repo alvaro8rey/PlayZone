@@ -6,10 +6,16 @@ struct ColorRound {
     let targetR: Double
     let targetG: Double
     let targetB: Double
-    var score: Int?
+    var score:  Int?
+    var guessR: Double = 127
+    var guessG: Double = 127
+    var guessB: Double = 127
 
     var targetColor: Color {
         Color(red: targetR / 255, green: targetG / 255, blue: targetB / 255)
+    }
+    var guessColor: Color {
+        Color(red: guessR / 255, green: guessG / 255, blue: guessB / 255)
     }
 }
 
@@ -41,7 +47,10 @@ final class ColorMatchGame {
         let db = currentRound.targetB - b
         let dist = (dr * dr + dg * dg + db * db).squareRoot()
         let pct  = max(0.0, 1 - dist / (255 * 255 * 3.0).squareRoot())
-        rounds[currentIndex].score = Int((pct * 100).rounded())
+        rounds[currentIndex].score  = Int((pct * 100).rounded())
+        rounds[currentIndex].guessR = r
+        rounds[currentIndex].guessG = g
+        rounds[currentIndex].guessB = b
         state = .showingResult
     }
 

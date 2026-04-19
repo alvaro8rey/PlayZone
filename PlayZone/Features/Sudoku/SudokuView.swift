@@ -78,7 +78,8 @@ struct SudokuView: View {
         }
         .alert("¡Sudoku Completado! 🎉", isPresented: $showResult) {
             Button("Nuevo juego") { Task { await game.load() } }
-            Button("Menú") { path.removeLast(path.count) }
+            Button("Ver Ranking") { path.append(Route.ranking(.sudoku)) }
+            Button("Menú", role: .cancel) { path.removeLast(path.count) }
         } message: {
             Text(isNewRecord
                  ? "🏆 ¡Nuevo récord!  \(formattedTime(game.elapsedSeconds))  •  \(game.mistakes) errores"

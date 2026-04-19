@@ -59,7 +59,8 @@ struct MemoryView: View {
         }
         .alert("¡Completado! 🎉", isPresented: $showResult) {
             Button("Nuevo juego") { game.reset() }
-            Button("Menú") { path.removeLast(path.count) }
+            Button("Ver Ranking") { path.append(Route.ranking(.memory)) }
+            Button("Menú", role: .cancel) { path.removeLast(path.count) }
         } message: {
             Text(isNewRecord
                  ? "🏆 ¡Nuevo récord!  \(formattedTime(game.elapsedSeconds))  •  \(game.moves) movs."

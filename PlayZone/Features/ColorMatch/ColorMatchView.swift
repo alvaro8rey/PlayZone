@@ -8,7 +8,7 @@ struct ColorMatchView: View {
     @State private var red:   Double = 127
     @State private var green: Double = 127
     @State private var blue:  Double = 127
-    @State private var showFinished = false
+    @State private var showSummary  = false
     @State private var isNewRecord  = false
     @State private var showInfo = false
     @Environment(\.rankingService) private var rankingService
@@ -60,6 +60,15 @@ struct ColorMatchView: View {
             }
         }
         .sheet(isPresented: $showInfo) { GameInfoSheet(game: .colorMatch) }
+        .sheet(isPresented: $showSummary) {
+            ColorMatchSummarySheet(
+                game: game,
+                isNewRecord: isNewRecord,
+                onNewGame: { showSummary = false; game.reset() },
+                onRanking: { showSummary = false; path.append(Route.ranking(.colorMatch)) },
+                onMenu:    { showSummary = false; path.removeLast(path.count) }
+            )
+        }
         .onChange(of: game.state) { _, st in
             if st == .playing {
                 red = 127; green = 127; blue = 127
@@ -67,17 +76,9 @@ struct ColorMatchView: View {
             if st == .finished {
                 Task {
                     await submitScore()
-                    showFinished = true
+                    showSummary = true
                 }
             }
-        }
-        .alert("¡Juego completado!", isPresented: $showFinished) {
-            Button("Nuevo juego") { game.reset() }
-            Button("Menú")        { path.removeLast(path.count) }
-        } message: {
-            Text(isNewRecord
-                 ? "🏆 ¡Nuevo récord!\n\(game.totalScore) / \(game.maxScore) pts"
-                 : "Puntuación: \(game.totalScore) / \(game.maxScore) pts")
         }
     }
 
@@ -246,5 +247,143 @@ struct ColorMatchView: View {
                                  difficulty: difficulty, value: total)
         try? await rankingService.save(entry)
         isNewRecord = previousBest == nil || total > previousBest!
+    }
+}
+
+// MARK: - Summary sheet
+
+struct ColorMatchSummarySheet: View {
+    let game:        ColorMatchGame
+    let isNewRecord: Bool
+    let onNewGame:   () -> Void
+    let onRanking:   () -> Void
+    let onMenu:      () -> Void
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(spacing: 20) {
+                    // Total score header
+                    VStack(spacing: 4) {
+                        if isNewRecord {
+                            Text("🏆 ¡Nuevo récord!")
+                                .font(.headline.bold())
+                                .foregroundStyle(Color(hex: "EAB308"))
+                        }
+                        Text("\(game.totalScore) / \(game.maxScore) pts")
+                            .font(.system(size: 44, weight: .bold, design: .rounded))
+                            .foregroundStyle(scoreColor(game.totalScore, max: game.maxScore))
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 20)
+                    .background(Color(.secondarySystemGroupedBackground))
+                    .clipShape(RoundedRectangle(cornerRadius: 16))
+
+                    // Per-round breakdown
+                    VStack(spacing: 10) {
+                        ForEach(Array(game.rounds.enumerated()), id: \.offset) { i, round in
+                            roundRow(index: i, round: round)
+                        }
+                    }
+                }
+                .padding(20)
+            }
+            .navigationTitle("Resumen · Color Mix")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Listo") { onMenu() }
+                        .fontWeight(.semibold)
+                }
+            }
+            .safeAreaInset(edge: .bottom) {
+                VStack(spacing: 10) {
+                    Button(action: onNewGame) {
+                        Text("Nuevo juego")
+                            .font(.headline.bold())
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 14)
+                            .background(LinearGradient(
+                                colors: [Color(hex: "F43F5E"), Color(hex: "8B5CF6")],
+                                startPoint: .leading, endPoint: .trailing))
+                            .foregroundStyle(.white)
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                    }
+                    Button(action: onRanking) {
+                        Text("Ver Ranking")
+                            .font(.subheadline.bold())
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 12)
+                            .background(Color(.secondarySystemGroupedBackground))
+                            .foregroundStyle(.primary)
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                    }
+                }
+                .padding(.horizontal, 20)
+                .padding(.vertical, 12)
+                .background(.bar)
+            }
+        }
+    }
+
+    private func roundRow(index: Int, round: ColorRound) -> some View {
+        let score = round.score ?? 0
+        return HStack(spacing: 12) {
+            Text("R\(index + 1)")
+                .font(.caption.bold())
+                .foregroundStyle(Color(hex: "94A3B8"))
+                .frame(width: 28)
+
+            // Color swatches
+            HStack(spacing: 4) {
+                RoundedRectangle(cornerRadius: 6)
+                    .fill(round.targetColor)
+                    .frame(width: 28, height: 28)
+                Image(systemName: "arrow.right")
+                    .font(.caption2)
+                    .foregroundStyle(Color(hex: "64748B"))
+                RoundedRectangle(cornerRadius: 6)
+                    .fill(round.guessColor)
+                    .frame(width: 28, height: 28)
+            }
+
+            // Delta per channel
+            VStack(alignment: .leading, spacing: 2) {
+                channelDelta(label: "R", target: round.targetR, guess: round.guessR, accent: Color(hex: "EF4444"))
+                channelDelta(label: "G", target: round.targetG, guess: round.guessG, accent: Color(hex: "22C55E"))
+                channelDelta(label: "B", target: round.targetB, guess: round.guessB, accent: Color(hex: "3B82F6"))
+            }
+
+            Spacer()
+
+            // Score badge
+            Text("\(score)")
+                .font(.title3.bold().monospacedDigit())
+                .foregroundStyle(scoreColor(score, max: 100))
+                .frame(width: 40, alignment: .trailing)
+        }
+        .padding(12)
+        .background(Color(.secondarySystemGroupedBackground))
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+    }
+
+    private func channelDelta(label: String, target: Double, guess: Double, accent: Color) -> some View {
+        let delta = abs(Int(target) - Int(guess))
+        return HStack(spacing: 4) {
+            Text(label)
+                .font(.system(size: 9, weight: .bold))
+                .foregroundStyle(accent)
+                .frame(width: 10)
+            Text("Δ\(delta)")
+                .font(.system(size: 10, weight: .semibold).monospacedDigit())
+                .foregroundStyle(delta < 15 ? Color(hex: "22C55E") : delta < 40 ? Color(hex: "EAB308") : Color(hex: "EF4444"))
+        }
+    }
+
+    private func scoreColor(_ score: Int, max: Int) -> Color {
+        let pct = Double(score) / Double(max)
+        if pct >= 0.9 { return Color(hex: "22C55E") }
+        if pct >= 0.7 { return Color(hex: "EAB308") }
+        return Color(hex: "EF4444")
     }
 }

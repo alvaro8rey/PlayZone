@@ -56,7 +56,8 @@ struct SnakeView: View {
         }
         .alert("Game Over 🐍", isPresented: $showOver) {
             Button("Reintentar") { game.reset() }
-            Button("Menú") { path.removeLast(path.count) }
+            Button("Ver Ranking") { path.append(Route.ranking(.snake)) }
+            Button("Menú", role: .cancel) { path.removeLast(path.count) }
         } message: {
             Text(isNewRecord
                  ? "🏆 ¡Nueva marca!  \(game.score) pts"

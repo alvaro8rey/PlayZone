@@ -57,7 +57,8 @@ struct MinesweeperView: View {
         }
         .alert(game.state == .won ? "¡Ganaste! 🎉" : "¡Boom! 💥", isPresented: $showResult) {
             Button("Reintentar") { game.reset() }
-            Button("Menú") { path.removeLast(path.count) }
+            Button("Ver Ranking") { path.append(Route.ranking(.minesweeper)) }
+            Button("Menú", role: .cancel) { path.removeLast(path.count) }
         } message: {
             if game.state == .won {
                 Text(isNewRecord

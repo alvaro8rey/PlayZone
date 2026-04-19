@@ -55,7 +55,8 @@ struct FifteenPuzzleView: View {
         }
         .alert("¡Puzzle completado! 🎉", isPresented: $showResult) {
             Button("Nuevo juego") { game.reset() }
-            Button("Menú") { path.removeLast(path.count) }
+            Button("Ver Ranking") { path.append(Route.ranking(.puzzle15)) }
+            Button("Menú", role: .cancel) { path.removeLast(path.count) }
         } message: {
             Text(isNewRecord
                  ? "🏆 ¡Nuevo récord! \(formattedTime(game.elapsedSeconds))"

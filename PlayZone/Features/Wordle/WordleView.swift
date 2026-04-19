@@ -61,7 +61,8 @@ struct WordleView: View {
         }
         .alert(game.state == .won ? "¡Lo conseguiste! 🎉" : "Game Over", isPresented: $showResult) {
             Button("Reintentar") { game.reset(); keyboardFocused = true }
-            Button("Menú") { path.removeLast(path.count) }
+            Button("Ver Ranking") { path.append(Route.ranking(.wordle)) }
+            Button("Menú", role: .cancel) { path.removeLast(path.count) }
         } message: {
             if game.state == .won {
                 let streakText = game.currentStreak == 1

@@ -64,10 +64,13 @@ struct Game2048View: View {
         .alert("¡Llegaste a \(game.goal)! 🎉", isPresented: $showWin) {
             Button("Seguir jugando") { }
             Button("Nuevo juego") { game.reset() }
+            Button("Ver Ranking") { path.append(Route.ranking(.game2048)) }
+            Button("Menú", role: .cancel) { path.removeLast(path.count) }
         }
         .alert("Game Over", isPresented: $showOver) {
             Button("Reintentar") { game.reset() }
-            Button("Menú") { path.removeLast(path.count) }
+            Button("Ver Ranking") { path.append(Route.ranking(.game2048)) }
+            Button("Menú", role: .cancel) { path.removeLast(path.count) }
         } message: {
             Text(isNewRecord
                  ? "🏆 ¡Nueva marca!  \(game.score) pts"
