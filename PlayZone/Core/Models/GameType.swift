@@ -20,18 +20,27 @@ enum GameType: String, CaseIterable, Codable, Identifiable {
 
     var icon: String {
         switch self {
-        case .minesweeper: return "scope"
-        case .sudoku:      return "square.grid.3x3.fill"
+        case .minesweeper: return "minesweeper"
+        case .sudoku:      return "sudoku"
         case .game2048:    return "square.stack.fill"
-        case .memory:      return "rectangle.on.rectangle.angled.fill"
-        case .snake:       return "arrow.triangle.turn.up.right.diamond.fill"
+        case .memory:      return "memory"
+        case .snake:       return "snake"
         case .wordle:      return "textformat.abc"
-        case .breakout:    return "square.split.2x2"
+        case .breakout:    return "breakout"
         case .colorMatch:  return "paintpalette.fill"
         case .spellingBee: return "hexagon.fill"
         case .nonogram:    return "square.grid.2x2.fill"
         case .lightsOut:   return "lightbulb.fill"
         case .puzzle15:    return "number.square.fill"
+        }
+    }
+
+    var isCustomIcon: Bool {
+        switch self {
+        case .snake, .breakout, .minesweeper, .sudoku, .memory:
+            return true
+        default:
+            return false
         }
     }
 

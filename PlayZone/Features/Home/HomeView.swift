@@ -34,8 +34,6 @@ struct HomeView: View {
         .sheet(isPresented: $showSettings) { SettingsView() }
     }
 
-    // MARK: - Header
-
     private var header: some View {
         HStack {
             VStack(alignment: .leading, spacing: 4) {
@@ -58,8 +56,6 @@ struct HomeView: View {
         .padding(.top, 16)
     }
 
-    // MARK: - Games Grid
-
     private var gamesGrid: some View {
         LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 16) {
             ForEach(GameType.allCases) { game in
@@ -71,8 +67,6 @@ struct HomeView: View {
     }
 }
 
-// MARK: - Game Card
-
 struct GameCard: View {
     let game: GameType
     @Binding var path: NavigationPath
@@ -82,7 +76,6 @@ struct GameCard: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // Card front
             Button {
                 withAnimation(.spring(response: 0.35)) {
                     expandedGame = expanded ? nil : game
@@ -91,23 +84,39 @@ struct GameCard: View {
                 ZStack {
                     LinearGradient(colors: game.gradient, startPoint: .topLeading, endPoint: .bottomTrailing)
 
-                    VStack(spacing: 10) {
-                        Image(systemName: game.icon)
-                            .font(.system(size: 36, weight: .semibold))
-                            .foregroundStyle(.white)
+                    VStack(spacing: 12) {
+                        // Contenedor de icono con altura fija para alinear el título
+                        ZStack {
+                            if game.isCustomIcon {
+                                Image(game.icon)
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 36, height: 36)
+                                    .foregroundStyle(.white)
+                            } else {
+                                Image(systemName: game.icon)
+                                    .font(.system(size: 32, weight: .semibold))
+                                    .foregroundStyle(.white)
+                            }
+                        }
+                        .frame(height: 40)
 
+                        // Título con altura fija
                         Text(game.rawValue)
                             .font(.headline)
                             .foregroundStyle(.white)
+                            .frame(height: 22)
 
+                        // Descripción con altura fija para 2 líneas
                         Text(game.description)
                             .font(.caption)
                             .foregroundStyle(.white.opacity(0.8))
                             .multilineTextAlignment(.center)
                             .lineLimit(2)
+                            .frame(height: 38)
                             .fixedSize(horizontal: false, vertical: true)
 
-                        // Ranking badge
+                        // Badge de Ranking
                         HStack(spacing: 4) {
                             Image(systemName: game.rankingType == .time ? "timer" : "star.fill")
                                 .font(.caption2)
@@ -122,7 +131,6 @@ struct GameCard: View {
             }
             .shadow(color: game.gradient.first!.opacity(0.4), radius: 8, y: 4)
 
-            // Expanded difficulty picker
             if expanded {
                 VStack(spacing: 8) {
                     ForEach(Difficulty.allCases) { diff in
@@ -190,8 +198,6 @@ struct GameCard: View {
         }
     }
 }
-
-// MARK: - Settings
 
 struct SettingsView: View {
     @AppStorage("playerName") private var playerName = ""
