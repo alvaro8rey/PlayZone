@@ -4,15 +4,21 @@ struct HomeView: View {
     @Binding var path: NavigationPath
     @AppStorage("playerName")      private var playerName    = ""
     @AppStorage("lastPlayedGame")  private var lastPlayedRaw = ""
-    @State private var showSettings      = false
-    @State private var expandedGame: GameType? = nil
+    @State private var showSettings          = false
+    @State private var expandedGame: GameType?    = nil
+    @State private var expandedFeatured: GameType? = nil
     @State private var selectedCategory: GameCategory = .all
 
     private var lastPlayedGame: GameType? { GameType(rawValue: lastPlayedRaw) }
 
     private var filteredGames: [GameType] {
-        if selectedCategory == .all { return GameType.allCases }
-        return GameType.allCases.filter { $0.category == selectedCategory }
+        let base = selectedCategory == .all
+            ? GameType.allCases
+            : GameType.allCases.filter { $0.category == selectedCategory }
+        if selectedCategory == .all, let last = lastPlayedGame {
+            return base.filter { $0 != last }
+        }
+        return base
     }
 
     var body: some View {
@@ -116,7 +122,7 @@ struct HomeView: View {
             }
             .padding(.horizontal, 16)
 
-            FeaturedCard(game: game, path: $path, expandedGame: $expandedGame,
+            FeaturedCard(game: game, path: $path, expandedGame: $expandedFeatured,
                          onPlay: { lastPlayedRaw = game.rawValue })
                 .padding(.horizontal, 16)
         }
