@@ -96,7 +96,7 @@ final class NonogramGame {
         isComplete = false
     }
 
-    private func computeClues(_ line: [Bool]) -> [Int] {
+    func computeClues(_ line: [Bool]) -> [Int] {
         var clues: [Int] = []
         var run = 0
         for cell in line {
@@ -105,6 +105,14 @@ final class NonogramGame {
         }
         if run > 0 { clues.append(run) }
         return clues.isEmpty ? [0] : clues
+    }
+
+    func isRowComplete(_ r: Int) -> Bool {
+        computeClues((0..<size).map { marks[r][$0] == .filled }) == rowClues[r]
+    }
+
+    func isColComplete(_ c: Int) -> Bool {
+        computeClues((0..<size).map { marks[$0][c] == .filled }) == colClues[c]
     }
 
     // Validates against the clues so any logically equivalent solution is accepted.
