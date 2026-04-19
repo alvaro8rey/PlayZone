@@ -59,6 +59,7 @@ final class NonogramGame {
         var fallbackRow:    [[Int]]  = []
         var fallbackCol:    [[Int]]  = []
 
+        let t0 = Date()
         for attempt in 0..<200 {
             let sol = (0..<size).map { _ in
                 (0..<size).map { _ in Double.random(in: 0...1) < 0.55 }
@@ -70,11 +71,12 @@ final class NonogramGame {
                 fallbackSol = sol; fallbackRow = rClues; fallbackCol = cClues
             }
 
-            // Set temporarily so hasSingleSolution() can read them
             rowClues = rClues
             colClues = cClues
 
             if hasSingleSolution() {
+                let ms = Int(Date().timeIntervalSince(t0) * 1000)
+                print("[Nonogram] ✅ Unique puzzle found in \(attempt + 1) attempt(s) — \(ms) ms (\(size)×\(size))")
                 solution  = sol
                 isUnique  = true
                 marks     = Array(repeating: Array(repeating: .empty, count: size), count: size)
@@ -83,7 +85,9 @@ final class NonogramGame {
             }
         }
 
-        // Fallback: use a non-unique puzzle
+        // Fallback: use a non-unique puzzle (ambiguous clues)
+        let ms = Int(Date().timeIntervalSince(t0) * 1000)
+        print("[Nonogram] ⚠️ No unique puzzle found in 200 attempts — using non-unique fallback (\(size)×\(size), \(ms) ms)")
         solution  = fallbackSol
         rowClues  = fallbackRow
         colClues  = fallbackCol
