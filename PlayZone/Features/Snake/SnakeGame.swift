@@ -22,9 +22,9 @@ final class SnakeGame {
 
     private var speed: TimeInterval {
         switch difficulty {
-        case .easy:   return 0.12
-        case .medium: return 0.08
-        case .hard:   return 0.05
+        case .easy:   return 0.25
+        case .medium: return 0.16
+        case .hard:   return 0.10
         }
     }
 
