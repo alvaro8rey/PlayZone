@@ -227,7 +227,7 @@ struct TetrisView: View {
             Image(systemName: icon)
                 .font(.title2.bold())
                 .foregroundStyle(.white)
-                .frame(maxWidth: wide ? .infinity : nil, minWidth: 64, minHeight: 52)
+                .frame(minWidth: 64, maxWidth: wide ? .infinity : nil, minHeight: 52)
                 .background(Color(hex: "1E293B"))
                 .clipShape(RoundedRectangle(cornerRadius: 12))
         }

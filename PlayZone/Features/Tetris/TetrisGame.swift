@@ -100,7 +100,7 @@ final class TetrisGame {
     init(difficulty: Difficulty) {
         self.difficulty = difficulty
         self.board = Array(repeating: Array(repeating: .empty, count: TetrisGame.cols), count: TetrisGame.rows)
-        self.next = Self.drawFromBag(&[])
+        self.next = TetrominoType.allCases.randomElement()!
         refillBag()
         spawnPiece()
     }
@@ -211,7 +211,7 @@ final class TetrisGame {
     }
 
     private func lockPiece() {
-        guard var p = current else { return }
+        guard let p = current else { return }
         placePiece(p)
         let cleared = clearLines()
         lines += cleared
