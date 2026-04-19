@@ -2,6 +2,24 @@ import SwiftUI
 
 enum RankingType { case time, score, streak, moves }
 
+enum GameCategory: String, CaseIterable {
+    case all     = "Todos"
+    case logic   = "Lógica"
+    case words   = "Palabras"
+    case arcade  = "Arcade"
+    case memory  = "Memoria"
+
+    var icon: String {
+        switch self {
+        case .all:    return "square.grid.2x2.fill"
+        case .logic:  return "puzzlepiece.fill"
+        case .words:  return "textformat.abc"
+        case .arcade: return "gamecontroller.fill"
+        case .memory: return "brain.head.profile"
+        }
+    }
+}
+
 enum GameType: String, CaseIterable, Codable, Identifiable {
     case minesweeper = "Buscaminas"
     case sudoku      = "Sudoku"
@@ -95,6 +113,16 @@ enum GameType: String, CaseIterable, Codable, Identifiable {
         case .score:  return "Mayor puntuación"
         case .streak: return "Mejor racha"
         case .moves:  return "Menos movimientos"
+        }
+    }
+
+    var category: GameCategory {
+        switch self {
+        case .minesweeper, .sudoku, .game2048,
+             .nonogram, .lightsOut, .puzzle15: return .logic
+        case .wordle, .spellingBee:            return .words
+        case .snake, .breakout:                return .arcade
+        case .memory, .colorMatch:             return .memory
         }
     }
 
