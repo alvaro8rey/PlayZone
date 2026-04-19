@@ -1,5 +1,4 @@
 import SwiftUI
-import UIKit
 
 struct WordleView: View {
     let difficulty: Difficulty
@@ -11,7 +10,6 @@ struct WordleView: View {
     @State private var shakeRow: Int? = nil
     @State private var showInfo            = false
     @State private var navigatedToRanking  = false
-    @State private var keyboardFocused = false
     @Environment(\.rankingService) private var rankingService
     @AppStorage("playerName") private var playerName = ""
 
@@ -33,9 +31,9 @@ struct WordleView: View {
                         .padding(.horizontal, 32)
                         .padding(.top, 16)
                     Spacer()
-                    NativeKeyboardInput(focused: $keyboardFocused, onKey: handleKey)
-                        .frame(width: 1, height: 1)
-                        .opacity(0.001)
+                    WordleKeyboard(game: game, onLetter: { game.addLetter($0) }, onDelete: { game.deleteLetter() })
+                        .padding(.horizontal, 8)
+                        .padding(.bottom, 12)
                 }
             }
         }
@@ -43,7 +41,7 @@ struct WordleView: View {
         .overlay {
             if navigatedToRanking {
                 PostRankingOverlay(
-                    onNewGame: { navigatedToRanking = false; game.reset(); keyboardFocused = true },
+                    onNewGame: { navigatedToRanking = false; game.reset() },
                     onMenu:    { navigatedToRanking = false; path.removeLast(path.count) }
                 )
             }
@@ -59,10 +57,8 @@ struct WordleView: View {
             }
         }
         .sheet(isPresented: $showInfo) { GameInfoSheet(game: .wordle) }
-        .onAppear { keyboardFocused = true }
         .onChange(of: game.state) { _, st in
             guard st != .playing else { return }
-            keyboardFocused = false
             Task {
                 if st == .won { await submitScore() }
                 try? await Task.sleep(nanoseconds: 800_000_000)
@@ -70,7 +66,7 @@ struct WordleView: View {
             }
         }
         .alert(game.state == .won ? "¡Lo conseguiste! 🎉" : "Game Over", isPresented: $showResult) {
-            Button("Reintentar") { game.reset(); keyboardFocused = true }
+            Button("Reintentar") { game.reset() }
             Button("Ver Ranking") { navigatedToRanking = true; path.append(Route.ranking(.wordle)) }
             Button("Menú", role: .cancel) { path.removeLast(path.count) }
         } message: {
@@ -117,7 +113,6 @@ struct WordleView: View {
                         .onTapGesture {
                             if isCurrentRow && game.state == .playing {
                                 game.selectCol(col)
-                                keyboardFocused = true
                             }
                         }
                     }
@@ -138,20 +133,6 @@ struct WordleView: View {
         return game.letterStates[row][col]
     }
 
-    // MARK: - Key handling
-
-    private func handleKey(_ key: Character?) {
-        guard game.state == .playing else { return }
-        if let ch = key {
-            game.addLetter(Character(String(ch).lowercased()))
-            if game.isCurrentGuessFull {
-                _ = game.submitGuess()
-            }
-        } else {
-            game.deleteLetter()
-        }
-    }
-
     // MARK: - Submit score
 
     private func submitScore() async {
@@ -164,59 +145,74 @@ struct WordleView: View {
     }
 }
 
-// MARK: - Native keyboard bridge
+// MARK: - Keyboard
 
-private class BackspaceTextField: UITextField {
-    var onBackspace: (() -> Void)?
-    override func deleteBackward() {
-        onBackspace?()
-        super.deleteBackward()
-    }
-}
+struct WordleKeyboard: View {
+    let game: WordleGame
+    let onLetter: (Character) -> Void
+    let onDelete: () -> Void
 
-struct NativeKeyboardInput: UIViewRepresentable {
-    @Binding var focused: Bool
-    let onKey: (Character?) -> Void
+    private let rows = [
+        "QWERTYUIOP",
+        "ASDFGHJKL",
+        "ZXCVBNM"
+    ]
 
-    func makeUIView(context: Context) -> UITextField {
-        let tf = BackspaceTextField()
-        tf.onBackspace = { context.coordinator.onKey(nil) }
-        tf.delegate = context.coordinator
-        tf.autocorrectionType = .no
-        tf.autocapitalizationType = .allCharacters
-        tf.spellCheckingType = .no
-        tf.smartDashesType = .no
-        tf.smartQuotesType = .no
-        tf.keyboardType = .asciiCapable
-        return tf
-    }
+    var body: some View {
+        VStack(spacing: 6) {
+            ForEach(0..<rows.count, id: \.self) { rowIdx in
+                HStack(spacing: 4) {
+                    if rowIdx == 2 { Spacer().frame(width: 8) }
 
-    func updateUIView(_ uiView: UITextField, context: Context) {
-        DispatchQueue.main.async {
-            if focused && !uiView.isFirstResponder {
-                uiView.becomeFirstResponder()
-            } else if !focused && uiView.isFirstResponder {
-                uiView.resignFirstResponder()
+                    ForEach(Array(rows[rowIdx]), id: \.self) { letter in
+                        let state = game.keyboardState[letter] ?? .unknown
+                        let isDisabled = state != .unknown
+
+                        Button {
+                            onLetter(letter.lowercased().first!)
+                            if game.isCurrentGuessFull {
+                                _ = game.submitGuess()
+                            }
+                        } label: {
+                            Text(String(letter))
+                                .font(.system(size: 13, weight: .semibold))
+                                .frame(maxWidth: .infinity)
+                                .frame(height: 40)
+                                .background(keyColor(state))
+                                .foregroundStyle(keyTextColor(state))
+                                .clipShape(RoundedRectangle(cornerRadius: 6))
+                        }
+                        .disabled(isDisabled || game.state != .playing)
+                    }
+
+                    if rowIdx == 2 {
+                        Button { onDelete() } label: {
+                            Image(systemName: "delete.left.fill")
+                                .font(.system(size: 16, weight: .semibold))
+                                .frame(maxWidth: .infinity)
+                                .frame(height: 40)
+                                .background(Color(hex: "334155"))
+                                .foregroundStyle(.white)
+                                .clipShape(RoundedRectangle(cornerRadius: 6))
+                        }
+                        .disabled(game.state != .playing)
+                    }
+                }
             }
         }
     }
 
-    func makeCoordinator() -> Coordinator { Coordinator(onKey: onKey) }
-
-    class Coordinator: NSObject, UITextFieldDelegate {
-        let onKey: (Character?) -> Void
-        init(onKey: @escaping (Character?) -> Void) { self.onKey = onKey }
-
-        func textField(_ textField: UITextField,
-                       shouldChangeCharactersIn range: NSRange,
-                       replacementString string: String) -> Bool {
-            // Backspace is handled by BackspaceTextField.deleteBackward()
-            guard !string.isEmpty else { return false }
-            for scalar in string.unicodeScalars where scalar.properties.isAlphabetic {
-                onKey(Character(scalar))
-            }
-            return false
+    private func keyColor(_ state: LetterState) -> Color {
+        switch state {
+        case .correct: return Color(hex: "16A34A")
+        case .present: return Color(hex: "D97706")
+        case .absent:  return Color(hex: "475569")
+        case .unknown: return Color(hex: "1E293B")
         }
+    }
+
+    private func keyTextColor(_ state: LetterState) -> Color {
+        state == .absent ? Color(hex: "64748B") : .white
     }
 }
 
