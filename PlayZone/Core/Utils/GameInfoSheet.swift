@@ -91,6 +91,8 @@ extension GameType {
             return "Cada ronda se muestra un color objetivo. Ajusta los sliders de Rojo, Verde y Azul para intentar igualarlo. Cuando estés listo, pulsa Confirmar. Cuanto más cerca estés del color original, más puntos recibirás (máximo 100 por ronda)."
         case .spellingBee:
             return "Forma palabras de exactamente 5 letras usando solo los 7 caracteres del panal. La letra central (dorada) debe aparecer en cada palabra. Puedes usar la misma letra más de una vez. Toca o arrastra hasta el hexágono deseado y suelta para seleccionarlo."
+        case .nonogram:
+            return "Rellena las casillas de la cuadrícula siguiendo las pistas numéricas de filas y columnas. Los números indican grupos consecutivos de casillas rellenas separados por al menos una vacía. Toca para rellenar, toca de nuevo para marcar con X (descartada), toca una tercera vez para vaciar."
         }
     }
 
@@ -114,6 +116,8 @@ extension GameType {
             return "La puntuación total es la suma de los puntos obtenidos en cada ronda (máximo 100 por ronda). Cuanto más se parezca tu mezcla al color objetivo, más puntos. Se guarda la puntuación total más alta por dificultad."
         case .spellingBee:
             return "El ranking es el número máximo de palabras distintas encontradas en una misma partida. Cuantas más palabras encuentres antes de iniciar un nuevo juego, mejor tu posición. Se guarda el récord por dificultad."
+        case .nonogram:
+            return "Se registra el tiempo total que tardas en resolver el nonograma completo. Cuanto menos tardes, mejor tu posición. Tu mejor marca se guarda por nivel de dificultad (5×5, 10×10, 15×15)."
         }
     }
 }

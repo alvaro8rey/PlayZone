@@ -184,6 +184,7 @@ struct GameCard: View {
         case .breakout:    path.append(Route.breakout(difficulty))
         case .colorMatch:  path.append(Route.colorMatch(difficulty))
         case .spellingBee: path.append(Route.spellingBee(difficulty))
+        case .nonogram:    path.append(Route.nonogram(difficulty))
         }
     }
 }

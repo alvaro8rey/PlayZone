@@ -1,0 +1,208 @@
+import SwiftUI
+
+struct NonogramView: View {
+    let difficulty: Difficulty
+    @Binding var path: NavigationPath
+
+    @State private var game: NonogramGame
+    @State private var showResult  = false
+    @State private var isNewRecord = false
+    @State private var showInfo    = false
+    @Environment(\.rankingService) private var rankingService
+    @AppStorage("playerName") private var playerName = ""
+
+    init(difficulty: Difficulty, path: Binding<NavigationPath>) {
+        self.difficulty = difficulty
+        self._path      = path
+        self._game      = State(initialValue: NonogramGame(difficulty: difficulty))
+    }
+
+    // MARK: - Body
+
+    var body: some View {
+        ZStack {
+            Color(hex: "0F172A").ignoresSafeArea()
+
+            VStack(spacing: 12) {
+                hud
+                GeometryReader { geo in
+                    puzzle(in: geo.size)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+                }
+            }
+            .padding(.horizontal, 12)
+            .padding(.top, 8)
+            .padding(.bottom, 12)
+        }
+        .navigationTitle("Nonograma · \(difficulty.rawValue)")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbarColorScheme(.dark, for: .navigationBar)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button { showInfo = true } label: {
+                    Image(systemName: "info.circle").foregroundStyle(.white)
+                }
+            }
+        }
+        .sheet(isPresented: $showInfo) { GameInfoSheet(game: .nonogram) }
+        .onChange(of: game.isComplete) { _, complete in
+            if complete {
+                Task {
+                    await submitScore()
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) { showResult = true }
+                }
+            }
+        }
+        .alert("¡Nonograma Completado! 🎉", isPresented: $showResult) {
+            Button("Nuevo juego") { game.reset() }
+            Button("Menú") { path.removeLast(path.count) }
+        } message: {
+            Text(isNewRecord
+                 ? "🏆 ¡Nuevo récord! \(formattedTime(game.elapsedSeconds))"
+                 : "Tiempo: \(formattedTime(game.elapsedSeconds))")
+        }
+    }
+
+    // MARK: - HUD
+
+    private var hud: some View {
+        HStack {
+            Image(systemName: "timer")
+                .foregroundStyle(Color(hex: "94A3B8"))
+            Text(formattedTime(game.elapsedSeconds))
+                .font(.headline.bold().monospacedDigit())
+                .foregroundStyle(.white)
+            Spacer()
+            Button { game.reset() } label: {
+                Image(systemName: "arrow.counterclockwise.circle.fill")
+                    .font(.title2)
+                    .foregroundStyle(.white)
+            }
+        }
+    }
+
+    // MARK: - Puzzle layout
+
+    @ViewBuilder
+    private func puzzle(in size: CGSize) -> some View {
+        let n          = game.size
+        let font: CGFloat = n <= 5 ? 15 : n <= 10 ? 12 : 10
+        let numH: CGFloat = font + 4
+        let numW: CGFloat = font + 6
+
+        let maxRowLen  = game.rowClues.map(\.count).max() ?? 1
+        let maxColLen  = game.colClues.map(\.count).max() ?? 1
+        let rowClueW   = CGFloat(maxRowLen) * numW + CGFloat(max(0, maxRowLen - 1)) * 2 + 8
+        let colClueH   = CGFloat(maxColLen) * numH + CGFloat(max(0, maxColLen - 1)) * 2 + 8
+
+        let gaps   = max(0, n - 1)
+        let thick  = n > 5 ? gaps / 5 : 0
+        let sepPts = CGFloat(gaps - thick) * 1 + CGFloat(thick) * 2
+
+        let cs = max(16, min(
+            (size.width  - rowClueW - sepPts) / CGFloat(n),
+            (size.height - colClueH - sepPts) / CGFloat(n)
+        ))
+
+        VStack(alignment: .leading, spacing: 0) {
+            // Column clue header row
+            HStack(spacing: 0) {
+                Color.clear.frame(width: rowClueW, height: colClueH)
+                ForEach(0..<n, id: \.self) { col in
+                    if col > 0 {
+                        Rectangle()
+                            .fill(n > 5 && col % 5 == 0 ? Color(hex: "64748B") : Color(hex: "334155"))
+                            .frame(width: n > 5 && col % 5 == 0 ? 2 : 1, height: colClueH)
+                    }
+                    colClueCell(col: col, maxLen: maxColLen,
+                                cellW: cs, clueH: colClueH,
+                                font: font, numH: numH)
+                }
+            }
+
+            // Game rows
+            ForEach(0..<n, id: \.self) { row in
+                if row > 0 {
+                    Rectangle()
+                        .fill(n > 5 && row % 5 == 0 ? Color(hex: "64748B") : Color(hex: "334155"))
+                        .frame(height: n > 5 && row % 5 == 0 ? 2 : 1)
+                }
+                HStack(spacing: 0) {
+                    rowClueCell(row: row, maxLen: maxRowLen,
+                                cellH: cs, clueW: rowClueW, font: font)
+                    ForEach(0..<n, id: \.self) { col in
+                        if col > 0 {
+                            Rectangle()
+                                .fill(n > 5 && col % 5 == 0 ? Color(hex: "64748B") : Color(hex: "334155"))
+                                .frame(width: n > 5 && col % 5 == 0 ? 2 : 1, height: cs)
+                        }
+                        gameCell(row: row, col: col, size: cs)
+                    }
+                }
+            }
+        }
+    }
+
+    private func colClueCell(col: Int, maxLen: Int,
+                             cellW: CGFloat, clueH: CGFloat,
+                             font: CGFloat, numH: CGFloat) -> some View {
+        let nums = game.colClues[col]
+        let pad  = maxLen - nums.count
+        return VStack(spacing: 2) {
+            ForEach(0..<pad, id: \.self) { _ in Color.clear.frame(height: numH) }
+            ForEach(Array(nums.enumerated()), id: \.offset) { _, n in
+                Text(n == 0 ? "·" : "\(n)")
+                    .font(.system(size: font, weight: .bold))
+                    .foregroundStyle(n == 0 ? Color(hex: "475569") : .white)
+                    .frame(height: numH)
+            }
+        }
+        .frame(width: cellW, height: clueH)
+    }
+
+    private func rowClueCell(row: Int, maxLen: Int,
+                             cellH: CGFloat, clueW: CGFloat, font: CGFloat) -> some View {
+        let nums = game.rowClues[row]
+        return HStack(spacing: 3) {
+            Spacer(minLength: 0)
+            ForEach(Array(nums.enumerated()), id: \.offset) { _, n in
+                Text(n == 0 ? "·" : "\(n)")
+                    .font(.system(size: font, weight: .bold))
+                    .foregroundStyle(n == 0 ? Color(hex: "475569") : .white)
+                    .lineLimit(1)
+            }
+        }
+        .frame(width: clueW, height: cellH)
+        .padding(.trailing, 4)
+    }
+
+    private func gameCell(row: Int, col: Int, size: CGFloat) -> some View {
+        let state = game.marks[row][col]
+        return ZStack {
+            Rectangle()
+                .fill(state == .filled ? Color(hex: "6366F1") : Color(hex: "1E293B"))
+            if state == .crossed {
+                Image(systemName: "xmark")
+                    .font(.system(size: max(8, size * 0.38), weight: .bold))
+                    .foregroundStyle(Color(hex: "64748B"))
+            }
+        }
+        .frame(width: size, height: size)
+        .onTapGesture { game.tap(row, col) }
+    }
+
+    // MARK: - Helpers
+
+    private func formattedTime(_ s: Int) -> String {
+        String(format: "%02d:%02d", s / 60, s % 60)
+    }
+
+    private func submitScore() async {
+        let current      = try? await rankingService.fetch(game: .nonogram, difficulty: difficulty)
+        let previousBest = current?.first(where: { $0.playerName == playerName })?.value
+        let entry = RankingEntry(playerName: playerName, game: .nonogram,
+                                 difficulty: difficulty, value: game.finalMilliseconds)
+        try? await rankingService.save(entry)
+        isNewRecord = previousBest == nil || game.finalMilliseconds < previousBest!
+    }
+}
