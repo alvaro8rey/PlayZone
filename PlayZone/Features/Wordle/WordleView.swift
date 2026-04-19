@@ -158,15 +158,29 @@ struct WordleKeyboard: View {
         "ZXCVBNM"
     ]
 
+    var usedLetters: Set<Character> {
+        var used = Set<Character>()
+        for guess in game.guesses {
+            for ch in guess {
+                used.insert(ch)
+            }
+        }
+        for tile in game.currentTiles {
+            if let ch = tile {
+                used.insert(ch)
+            }
+        }
+        return used
+    }
+
     var body: some View {
         VStack(spacing: 6) {
             ForEach(0..<rows.count, id: \.self) { rowIdx in
                 HStack(spacing: 4) {
-                    if rowIdx == 2 { Spacer().frame(width: 8) }
-
                     ForEach(Array(rows[rowIdx]), id: \.self) { letter in
                         let state = game.keyboardState[letter] ?? .unknown
-                        let isDisabled = state != .unknown
+                        let isUsed = usedLetters.contains(letter)
+                        let isDisabled = isUsed || game.state != .playing
 
                         Button {
                             onLetter(letter.lowercased().first!)
@@ -175,44 +189,51 @@ struct WordleKeyboard: View {
                             }
                         } label: {
                             Text(String(letter))
-                                .font(.system(size: 13, weight: .semibold))
-                                .frame(maxWidth: .infinity)
-                                .frame(height: 40)
-                                .background(keyColor(state))
-                                .foregroundStyle(keyTextColor(state))
+                                .font(.system(size: 12, weight: .semibold))
+                                .frame(width: 32, height: 40)
+                                .background(keyColor(state, isUsed: isUsed))
+                                .foregroundStyle(keyTextColor(state, isUsed: isUsed))
                                 .clipShape(RoundedRectangle(cornerRadius: 6))
                         }
-                        .disabled(isDisabled || game.state != .playing)
+                        .disabled(isDisabled)
                     }
 
-                    if rowIdx == 2 {
-                        Button { onDelete() } label: {
-                            Image(systemName: "delete.left.fill")
-                                .font(.system(size: 16, weight: .semibold))
-                                .frame(maxWidth: .infinity)
-                                .frame(height: 40)
-                                .background(Color(hex: "334155"))
-                                .foregroundStyle(.white)
-                                .clipShape(RoundedRectangle(cornerRadius: 6))
-                        }
-                        .disabled(game.state != .playing)
+                    Spacer()
+
+                    Button { onDelete() } label: {
+                        Image(systemName: "delete.left.fill")
+                            .font(.system(size: 14, weight: .semibold))
+                            .frame(width: 40, height: 40)
+                            .background(Color(hex: "334155"))
+                            .foregroundStyle(.white)
+                            .clipShape(RoundedRectangle(cornerRadius: 6))
                     }
+                    .disabled(game.state != .playing)
                 }
             }
         }
     }
 
-    private func keyColor(_ state: LetterState) -> Color {
-        switch state {
-        case .correct: return Color(hex: "16A34A")
-        case .present: return Color(hex: "D97706")
-        case .absent:  return Color(hex: "475569")
-        case .unknown: return Color(hex: "1E293B")
+    private func keyColor(_ state: LetterState, isUsed: Bool) -> Color {
+        if isUsed {
+            switch state {
+            case .correct: return Color(hex: "16A34A")
+            case .present: return Color(hex: "D97706")
+            case .absent:  return Color(hex: "475569")
+            case .unknown: return Color(hex: "475569")
+            }
         }
+        return Color(hex: "1E293B")
     }
 
-    private func keyTextColor(_ state: LetterState) -> Color {
-        state == .absent ? Color(hex: "64748B") : .white
+    private func keyTextColor(_ state: LetterState, isUsed: Bool) -> Color {
+        if !isUsed { return .white }
+        switch state {
+        case .correct: return .white
+        case .present: return .white
+        case .absent:  return Color(hex: "64748B")
+        case .unknown: return Color(hex: "64748B")
+        }
     }
 }
 
