@@ -167,7 +167,7 @@ struct WordleKeyboard: View {
                     ForEach(Array(rows[rowIdx]), id: \.self) { letter in
                         let lowerLetter = Character(letter.lowercased())
                         let state = game.keyboardState[lowerLetter] ?? .unknown
-                        let isDisabled = state != .unknown || game.state != .playing
+                        let isDisabled = (state == .absent) || game.state != .playing
 
                         Button {
                             onLetter(lowerLetter)
