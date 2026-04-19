@@ -3,37 +3,75 @@ import SwiftUI
 struct SwipeBackDisabler: UIViewRepresentable {
     func makeUIView(context: Context) -> UIView {
         let view = UIView()
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-            disableSwipeBack()
-        }
+        view.isUserInteractionEnabled = false
         return view
     }
 
     func updateUIView(_ uiView: UIView, context: Context) {
-        disableSwipeBack()
+        context.coordinator.attachIfNeeded(to: uiView)
     }
 
-    private func disableSwipeBack() {
-        guard let windowScene = UIApplication.shared.connectedScenes.first(where: { $0.activationState == .foregroundActive }) as? UIWindowScene,
-              let window = windowScene.windows.first else { return }
+    static func dismantleUIView(_ uiView: UIView, coordinator: Coordinator) {
+        coordinator.detach()
+    }
 
-        var viewController = window.rootViewController
-        while let presentedVC = viewController?.presentedViewController {
-            viewController = presentedVC
-        }
+    func makeCoordinator() -> Coordinator { Coordinator() }
 
-        if let navController = viewController as? UINavigationController {
-            navController.interactivePopGestureRecognizer?.isEnabled = false
-        }
+    final class Coordinator: NSObject, UIGestureRecognizerDelegate {
+        private var pan: UIScreenEdgePanGestureRecognizer?
+        private weak var attachedView: UIView?
 
-        if let navController = viewController?.navigationController {
-            navController.interactivePopGestureRecognizer?.isEnabled = false
-        }
-
-        for child in viewController?.children ?? [] {
-            if let navController = child as? UINavigationController {
-                navController.interactivePopGestureRecognizer?.isEnabled = false
+        func attachIfNeeded(to view: UIView) {
+            guard pan == nil else { return }
+            DispatchQueue.main.async { [weak self, weak view] in
+                guard let self, let view else { return }
+                guard let navView = self.findNavView(from: view) else { return }
+                let p = UIScreenEdgePanGestureRecognizer(target: self, action: #selector(self.handle))
+                p.edges = .left
+                p.delegate = self
+                navView.addGestureRecognizer(p)
+                self.pan = p
+                self.attachedView = navView
             }
+        }
+
+        func detach() {
+            if let p = pan, let v = attachedView { v.removeGestureRecognizer(p) }
+            pan = nil
+            attachedView = nil
+        }
+
+        @objc private func handle(_ gr: UIScreenEdgePanGestureRecognizer) {
+            // No hace nada - solo consume el gesto
+        }
+
+        func gestureRecognizer(_ gr: UIGestureRecognizer,
+                               shouldBeRequiredToFailBy other: UIGestureRecognizer) -> Bool {
+            return false
+        }
+
+        func gestureRecognizer(_ gr: UIGestureRecognizer,
+                               shouldRecognizeSimultaneouslyWith other: UIGestureRecognizer) -> Bool {
+            return false
+        }
+
+        private func findNavView(from view: UIView) -> UIView? {
+            var r: UIResponder? = view.next
+            while let resp = r {
+                if let nav = resp as? UINavigationController { return nav.view }
+                r = resp.next
+            }
+            guard let scene = UIApplication.shared.connectedScenes
+                .first(where: { $0.activationState == .foregroundActive }) as? UIWindowScene,
+                  let root = scene.keyWindow?.rootViewController else { return nil }
+            var queue = [root]
+            while !queue.isEmpty {
+                let vc = queue.removeFirst()
+                if let nav = vc as? UINavigationController { return nav.view }
+                queue.append(contentsOf: vc.children)
+                if let p = vc.presentedViewController { queue.append(p) }
+            }
+            return nil
         }
     }
 }
