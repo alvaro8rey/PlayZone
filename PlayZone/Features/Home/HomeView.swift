@@ -284,7 +284,7 @@ struct FeaturedCard: View {
         .padding(10)
         .background(Color(hex: "1E293B"))
         .clipShape(RoundedRectangle(cornerRadius: 16))
-        .transition(.opacity.combined(with: .move(edge: .top)))
+        .transition(.opacity.combined(with: .move(edge: .bottom)))
     }
 
     private func navigate(difficulty: Difficulty) {
