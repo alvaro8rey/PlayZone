@@ -56,6 +56,16 @@ struct SnakeView: View {
             }
         }
         .sheet(isPresented: $showInfo) { GameInfoSheet(game: .snake) }
+        .background(
+            SwipeCapture { dir in
+                switch dir {
+                case .up:    game.changeDirection(.up);    startIfNeeded()
+                case .down:  game.changeDirection(.down);  startIfNeeded()
+                case .left:  game.changeDirection(.left);  startIfNeeded()
+                case .right: game.changeDirection(.right); startIfNeeded()
+                }
+            }
+        )
         .onChange(of: game.state) { _, st in
             if st == .over {
                 Task {
