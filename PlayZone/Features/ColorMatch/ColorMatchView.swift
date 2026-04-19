@@ -36,14 +36,18 @@ struct ColorMatchView: View {
                 roundHeader
                 colorSwatches
 
-                if game.state == .playing || game.state == .finished {
+                if game.state == .playing {
                     slidersSection
                     Spacer()
                     confirmButton
                 } else {
+                    // .showingResult and .finished both keep the last result visible;
+                    // the summary sheet appears on top when .finished, so nothing flickers.
                     resultSection
                     Spacer()
-                    nextButton
+                    if game.state == .showingResult {
+                        nextButton
+                    }
                 }
             }
             .padding(.horizontal, 20)
