@@ -4,15 +4,9 @@ actor WordleService {
     static let shared = WordleService()
 
     func fetchWord(length: Int) async -> String {
-        do {
-            let word = try await fetchFromAPI(length: length)
-            print("[WordleService] ✅ API → \"\(word)\" (length \(length))")
-            return word
-        } catch {
-            let fallback = localWord(length: length)
-            print("[WordleService] ⚠️ API falló (\(error.localizedDescription)) → fallback: \"\(fallback)\"")
-            return fallback
-        }
+        let word = localWord(length: length)
+        print("[WordleService] 📖 Local → \"\(word)\" (length \(length))")
+        return word
     }
 
     func isValid(word: String, length: Int) -> Bool {
@@ -20,67 +14,10 @@ actor WordleService {
         return w.count == length && validationSet(length: length).contains(w)
     }
 
-    // MARK: - API
-
-    private func fetchFromAPI(length: Int) async throws -> String {
-        var comps = URLComponents(string: "https://rae-api.com/api/random")!
-        comps.queryItems = [
-            URLQueryItem(name: "min_length", value: "\(length)"),
-            URLQueryItem(name: "max_length", value: "\(length)")
-        ]
-        var req = URLRequest(url: comps.url!)
-        req.timeoutInterval = 5
-        print("[WordleService] 🌐 GET \(comps.url!)")
-        let (data, resp) = try await URLSession.shared.data(for: req)
-        let statusCode = (resp as? HTTPURLResponse)?.statusCode ?? -1
-        print("[WordleService] 📥 HTTP \(statusCode) — \(data.count) bytes")
-        if let raw = String(data: data, encoding: .utf8) {
-            print("[WordleService] 📄 Body: \(raw.prefix(200))")
-        }
-        guard statusCode == 200 else { throw URLError(.badServerResponse) }
-        let raw = try extractWord(from: data)
-        let cleaned = raw.folding(options: .diacriticInsensitive, locale: .current).lowercased()
-        print("[WordleService] 🔤 Palabra extraída: \"\(raw)\" → limpia: \"\(cleaned)\"")
-        guard cleaned.count == length, cleaned.allSatisfy({ $0.isLetter && $0.isASCII }) else {
-            print("[WordleService] ❌ Palabra rechazada (longitud o caracteres no válidos)")
-            throw URLError(.badServerResponse)
-        }
-        return cleaned
-    }
-
-    private func extractWord(from data: Data) throws -> String {
-        guard let json = try? JSONSerialization.jsonObject(with: data) else {
-            throw URLError(.cannotParseResponse)
-        }
-        if let obj = json as? [String: Any] {
-            // {"data": {"word": "…"}, "ok": true}
-            if let nested = obj["data"] as? [String: Any] {
-                for key in ["word", "palabra", "term"] {
-                    if let w = nested[key] as? String, !w.isEmpty { return w }
-                }
-            }
-            // {"palabra":"…"} or {"word":"…"}
-            for key in ["palabra", "word", "term", "texto"] {
-                if let w = obj[key] as? String, !w.isEmpty { return w }
-            }
-        }
-        // Array: ["palabra"] or [{"word":"…"}]
-        if let arr = json as? [Any] {
-            if let w = arr.first as? String, !w.isEmpty { return w }
-            if let obj = arr.first as? [String: Any] {
-                for key in ["word", "palabra", "term"] {
-                    if let w = obj[key] as? String, !w.isEmpty { return w }
-                }
-            }
-        }
-        throw URLError(.cannotParseResponse)
-    }
-
     // MARK: - Local words
 
     private func localWord(length: Int) -> String {
-        let list = wordList(length: length)
-        return list.randomElement() ?? (length == 4 ? "casa" : length == 5 ? "playa" : "ciudad")
+        wordList(length: length).randomElement()!
     }
 
     private func validationSet(length: Int) -> Set<String> {
@@ -89,50 +26,86 @@ actor WordleService {
 
     private func wordList(length: Int) -> [String] {
         switch length {
-        case 4: return words4
-        case 5: return words5
+        case 4:  return words4
+        case 5:  return words5
         default: return words6
         }
     }
 
-    // MARK: - Embedded word lists
+    // MARK: - Curated word lists — common everyday Spanish, no obscure forms
 
     private let words4 = [
-        "casa","mesa","pato","gato","luna","mano","pelo","boca","lago","roca",
-        "vaca","pera","uvas","hoja","nube","rana","rosa","sopa","taza","vela",
-        "bola","cama","dedo","faro","goma","hilo","jugo","kilo","lana","mono",
-        "nido","olla","paso","queso","rama","saco","tela","uña","vara","yema",
-        "zumo","alma","beso","copa","data","eje","foto","gris","isla","joya",
-        "limo","mapa","nota","obra","pico","rato","sala","toro","vino","zona",
-        "arco","barro","cera","duna","flor","giro","hada","imán","jaula","leña",
-        "miel","nave","onda","pavo","ramo","sello","tubo","urna","vaso","yate",
-        "zorro","amor","boda","cubo","diez","foca","guía","humo","idea","juez",
-        "loro","mago","niño","oído","puma","ruta","sumo","tiza","usos","vida"
+        // Animals (4 letters)
+        "gato","pato","rata","rana","toro","vaca","puma","foca","loro","sapo",
+        "buho","mula","lobo","gamo","alce","poni","reno","cria","orca","mico",
+        // Food & drink
+        "pera","uvas","sopa","vino","zumo","miel","coco","lima","kiwi","higo",
+        "cafe","masa","flan","nata","taco","tapa","haba","yema","cena","nuez",
+        // Body
+        "mano","pelo","boca","piel","dedo","cara","oido","unas","codo",
+        // Home & objects
+        "casa","mesa","cama","saco","vaso","copa","tubo","olla","sofa","taza",
+        "vela","faro","hilo","lana","nido","rama","tela","vara","bola","losa",
+        // Nature
+        "luna","lago","roca","hoja","nube","rosa","arco","flor","onda","isla",
+        "lodo","lava","pico","duna","limo","pozo","yuca","brea","lena","poza",
+        // Abstract & common
+        "amor","boda","cubo","humo","idea","mago","ruta","tiza","vida","foto",
+        "joya","mapa","nota","obra","sala","zona","ropa","seda","tema","tono",
+        "tipo","peso","paso","pena","pero","pino","piso","poco","polo","rico",
+        "rojo","tren","trio","vena","viga","vivo","yoga","palo","odio","ocio",
     ]
 
     private let words5 = [
-        "playa","barco","campo","cielo","disco","etapa","finca","gruta","hielo","ingre",
-        "juego","llama","mundo","nieve","olivo","piano","queso","radio","suelo","tigre",
-        "usted","viene","yarda","zueco","aguja","blusa","cairo","delta","esfera","fuego",
-        "globo","huevo","indio","jarra","limon","macho","negro","ocaso","papel","raton",
-        "sobre","tumor","viaje","xenon","zorro","abeja","bolsa","coche","danza","enero",
-        "fresa","gramo","hongo","ideal","jardin","leche","madre","nueve","orden","pared",
-        "reina","suave","techo","urban","verano","watio","yerno","zurdo","acero","bravo",
-        "calor","diente","falla","genio","habla","indice","joven","largo","marte","noche",
-        "omega","pecho","queja","reino","salud","talon","verde","xerez","yunta","zafra",
-        "adobe","buque","cerdo","dieta","excel","frase","guante","honor","inter","jugos"
+        // Animals (5 letters)
+        "tigre","oveja","cabra","llama","cobra","garza","panda","tapir","cisne",
+        "burro","cerdo","perro","zorra","cebra","potro","ganso","bisón",
+        // Food & drink
+        "queso","leche","trigo","pollo","fresa","limon","melon","mango","avena",
+        "pasta","caldo","salsa","crema","menta","cacao","arroz","jamon","oliva",
+        "nieve","tamal","carne",
+        // People & body
+        "madre","padre","novio","novia","prima","primo","sabio","viejo","nuevo",
+        "gordo","flaco","guapo","linda","joven","nieto","nieta","barba","torso",
+        // Places & nature
+        "playa","campo","monte","cerro","selva","delta","norte","oeste","calle",
+        "plaza","villa","valle","bahia","costa","llano","prado","otono","cauce",
+        // Home & objects
+        "barco","coche","techo","suelo","pared","manta","libro","bolsa","radio",
+        "papel","reloj","piano","carro","barca","boton","silla","banco","arbol",
+        "hueso","llave","marco","cesta","clavo","farol","toldo",
+        // Abstract & common
+        "mundo","cielo","fuego","hielo","orden","salud","reino","calor","dolor",
+        "miedo","juego","vuelo","sueno","canto","baile","ritmo","fondo","turno",
+        "rasgo","logro","enero","marzo","abril","junio","julio","negro","verde",
+        "claro","rubio","sucio","largo","corto","ancho","bello","feliz","bravo",
+        "dulce","mejor","cenit","total","digno","civil","noble","cruel",
     ]
 
     private let words6 = [
-        "ciudad","tiempo","blanco","cabeza","dinero","espejo","frente","grande","humano","imagen",
-        "jardin","lengua","manana","ningun","objeto","pueblo","quinto","riesgo","sangre","tierra",
-        "ultimo","verdad","winner","yacion","zapato","activo","bonito","camino","dentro","estado",
-        "fuerza","gracia","habito","inicio","juntos","lineal","medico","numero","oferta","prueba",
-        "rapido","sistem","tonada","unidad","viable","xilema","yerbal","zodiac","aliado","bosque",
-        "centro","delgad","empleo","figura","gloria","histor","impulso","juntar","lecion","modelo",
-        "nombre","opcion","paloma","raíces","secund","tesoro","unirse","visita","yacato","zanjar",
-        "albano","brillo","calles","debate","efecto","filtro","gastos","helado","idioma","juicio",
-        "limite","musica","nacion","origen","paleta","receta","silaba","textur","urbano","vector",
-        "weston","yodado","zambia","agente","burros","cubrir","dorado","eterno","famoso","givens"
+        // People & social
+        "ciudad","humano","pueblo","jardin","barrio","virgen","vecino","medico",
+        "marino","romano","pirata","safari","hombre",
+        // Time & calendar
+        "martes","jueves","sabado","agosto","verano","tiempo","siesta",
+        // Nature & animals
+        "bosque","tierra","viento","lluvia","hierba","halcon","volcan","laguna",
+        "jungla","salmon","trucha","vibora","pajaro","nutria",
+        // Body & health
+        "cabeza","lengua","frente","sangre","cuerpo","pulmon",
+        // Food & home
+        "camisa","zapato","helado","flauta","tomate","sarten","tocino","sandia",
+        "pepino","taller","tejado","templo","teatro","tronco","tienda",
+        // Objects & places
+        "espejo","figura","filtro","modelo","objeto","parque","pelota","postal",
+        "titulo","vuelta","zocalo","zafiro","rancho","rincon","ropero",
+        // Abstract & qualities
+        "verdad","fuerza","gracia","inicio","riesgo","unidad","visita","centro",
+        "debate","efecto","gloria","idioma","limite","nacion","origen","receta",
+        "urbano","dorado","eterno","famoso","futuro","genero","juicio","nombre",
+        "placer","tesoro","imagen","camino","dentro","estado","dinero","semana",
+        "paloma","crisis","chiste","duende","blanco","brillo","casino","musica",
+        "rapido","motivo","sonido","terror","torneo","sirena","sereno","novela",
+        "hambre","escena","fresco","marcha",
     ]
 }
