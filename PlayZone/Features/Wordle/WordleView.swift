@@ -205,7 +205,7 @@ struct WordleKeyboard: View {
 
     private func keyColor(_ state: LetterState) -> Color {
         switch state {
-        case .correct: return Color(hex: "16A34A")
+        case .correct: return Color(hex: "1E293B")
         case .present: return Color(hex: "D97706")
         case .absent:  return Color(hex: "475569")
         case .unknown: return Color(hex: "1E293B")
