@@ -206,25 +206,29 @@ struct SpellingBeeView: View {
             .gesture(
                 DragGesture(minimumDistance: 0)
                     .onChanged { val in
-                        guard game.currentInput.count < 5 else { return }
-                        let pt  = val.location
+                        // Only highlight — letter is NOT added until finger lifts
+                        let pt = val.location
                         var hit: Int? = nil
                         for (i, pos) in positions.enumerated() {
                             if hypot(pt.x - pos.0, pt.y - pos.1) < R * 0.92 {
                                 hit = i; break
                             }
                         }
-                        guard hit != hoveredHexIndex else { return }
                         hoveredHexIndex = hit
-                        guard let idx = hit else { return }
-                        game.addLetter(letters[idx])
-                        if game.currentInput.count == 5 {
-                            handleSubmit()
-                            hoveredHexIndex = nil
-                        }
                     }
-                    .onEnded { _ in
-                        hoveredHexIndex = nil
+                    .onEnded { val in
+                        defer { hoveredHexIndex = nil }
+                        guard game.currentInput.count < 5 else { return }
+                        let pt = val.location
+                        for (i, pos) in positions.enumerated() {
+                            if hypot(pt.x - pos.0, pt.y - pos.1) < R * 0.92 {
+                                game.addLetter(letters[i])
+                                if game.currentInput.count == 5 {
+                                    handleSubmit()
+                                }
+                                return
+                            }
+                        }
                     }
             )
         }
