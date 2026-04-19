@@ -4,10 +4,15 @@ actor WordleService {
     static let shared = WordleService()
 
     func fetchWord(length: Int) async -> String {
-        if let word = try? await fetchFromAPI(length: length) {
+        do {
+            let word = try await fetchFromAPI(length: length)
+            print("[WordleService] ✅ API → \"\(word)\" (length \(length))")
             return word
+        } catch {
+            let fallback = localWord(length: length)
+            print("[WordleService] ⚠️ API falló (\(error.localizedDescription)) → fallback: \"\(fallback)\"")
+            return fallback
         }
-        return localWord(length: length)
     }
 
     func isValid(word: String, length: Int) -> Bool {
@@ -25,13 +30,19 @@ actor WordleService {
         ]
         var req = URLRequest(url: comps.url!)
         req.timeoutInterval = 5
+        print("[WordleService] 🌐 GET \(comps.url!)")
         let (data, resp) = try await URLSession.shared.data(for: req)
-        guard (resp as? HTTPURLResponse)?.statusCode == 200 else {
-            throw URLError(.badServerResponse)
+        let statusCode = (resp as? HTTPURLResponse)?.statusCode ?? -1
+        print("[WordleService] 📥 HTTP \(statusCode) — \(data.count) bytes")
+        if let raw = String(data: data, encoding: .utf8) {
+            print("[WordleService] 📄 Body: \(raw.prefix(200))")
         }
+        guard statusCode == 200 else { throw URLError(.badServerResponse) }
         let raw = try extractWord(from: data)
         let cleaned = raw.folding(options: .diacriticInsensitive, locale: .current).lowercased()
+        print("[WordleService] 🔤 Palabra extraída: \"\(raw)\" → limpia: \"\(cleaned)\"")
         guard cleaned.count == length, cleaned.allSatisfy({ $0.isLetter && $0.isASCII }) else {
+            print("[WordleService] ❌ Palabra rechazada (longitud o caracteres no válidos)")
             throw URLError(.badServerResponse)
         }
         return cleaned
