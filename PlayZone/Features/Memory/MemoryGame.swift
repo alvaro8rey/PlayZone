@@ -83,8 +83,8 @@ final class MemoryGame {
     }
 
     func reset() {
-        let chosen = Array(Self.emojis.prefix(totalPairs))
-        let pairs = (chosen + chosen).enumerated().map { MemoryCard(id: $0.offset, emoji: $0.element) }
+        let chosen = Array(Self.symbols.prefix(totalPairs))
+        let pairs = (chosen + chosen).enumerated().map { MemoryCard(id: $0.offset, symbol: $0.element) }
         cards = pairs.shuffled()
         moves = 0
         matchedPairs = 0
