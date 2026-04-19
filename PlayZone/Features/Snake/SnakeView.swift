@@ -177,7 +177,7 @@ struct SnakeView: View {
             Image(systemName: "play.circle.fill")
                 .font(.system(size: 64))
                 .foregroundStyle(Color(hex: "14B8A6"))
-            Text("Toca para\nempezar")
+            Text("Toca el botón\nde Play")
                 .font(.headline)
                 .foregroundStyle(.white)
                 .multilineTextAlignment(.center)
