@@ -7,7 +7,8 @@ struct LightsOutView: View {
     @State private var game: LightsOutGame
     @State private var showResult  = false
     @State private var isNewRecord = false
-    @State private var showInfo    = false
+    @State private var showInfo            = false
+    @State private var navigatedToRanking  = false
     @Environment(\.rankingService) private var rankingService
     @AppStorage("playerName") private var playerName = ""
 
@@ -34,6 +35,14 @@ struct LightsOutView: View {
             .padding(.top, 8)
             .padding(.bottom, 20)
         }
+        .overlay {
+            if navigatedToRanking {
+                PostRankingOverlay(
+                    onNewGame: { navigatedToRanking = false; game.reset() },
+                    onMenu:    { navigatedToRanking = false; path.removeLast(path.count) }
+                )
+            }
+        }
         .navigationTitle("Lights Out · \(difficulty.rawValue)")
         .navigationBarTitleDisplayMode(.inline)
         .toolbarColorScheme(.dark, for: .navigationBar)
@@ -55,7 +64,7 @@ struct LightsOutView: View {
         }
         .alert("¡Todas las luces apagadas! 🎉", isPresented: $showResult) {
             Button("Nuevo juego") { game.reset() }
-            Button("Ver Ranking") { path.append(Route.ranking(.lightsOut)) }
+            Button("Ver Ranking") { navigatedToRanking = true; path.append(Route.ranking(.lightsOut)) }
             Button("Menú", role: .cancel) { path.removeLast(path.count) }
         } message: {
             Text(isNewRecord

@@ -7,7 +7,8 @@ struct SnakeView: View {
     @State private var game: SnakeGame
     @State private var showOver = false
     @State private var isNewRecord = false
-    @State private var showInfo = false
+    @State private var showInfo            = false
+    @State private var navigatedToRanking  = false
     @Environment(\.rankingService) private var rankingService
     @AppStorage("playerName") private var playerName = ""
 
@@ -35,6 +36,14 @@ struct SnakeView: View {
                 startOverlay
             }
         }
+        .overlay {
+            if navigatedToRanking {
+                PostRankingOverlay(
+                    onNewGame: { navigatedToRanking = false; game.reset() },
+                    onMenu:    { navigatedToRanking = false; path.removeLast(path.count) }
+                )
+            }
+        }
         .navigationTitle("Snake · \(difficulty.rawValue)")
         .navigationBarTitleDisplayMode(.inline)
         .toolbarColorScheme(.dark, for: .navigationBar)
@@ -56,7 +65,7 @@ struct SnakeView: View {
         }
         .alert("Game Over 🐍", isPresented: $showOver) {
             Button("Reintentar") { game.reset() }
-            Button("Ver Ranking") { path.append(Route.ranking(.snake)) }
+            Button("Ver Ranking") { navigatedToRanking = true; path.append(Route.ranking(.snake)) }
             Button("Menú", role: .cancel) { path.removeLast(path.count) }
         } message: {
             Text(isNewRecord

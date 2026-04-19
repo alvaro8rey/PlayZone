@@ -9,7 +9,8 @@ struct WordleView: View {
     @State private var showResult = false
     @State private var isNewRecord = false
     @State private var shakeRow: Int? = nil
-    @State private var showInfo = false
+    @State private var showInfo            = false
+    @State private var navigatedToRanking  = false
     @State private var keyboardFocused = false
     @Environment(\.rankingService) private var rankingService
     @AppStorage("playerName") private var playerName = ""
@@ -38,6 +39,14 @@ struct WordleView: View {
                 }
             }
         }
+        .overlay {
+            if navigatedToRanking {
+                PostRankingOverlay(
+                    onNewGame: { navigatedToRanking = false; game.reset(); keyboardFocused = true },
+                    onMenu:    { navigatedToRanking = false; path.removeLast(path.count) }
+                )
+            }
+        }
         .navigationTitle("Wordle · \(difficulty.rawValue) (\(game.wordLength) letras)")
         .navigationBarTitleDisplayMode(.inline)
         .toolbarColorScheme(.dark, for: .navigationBar)
@@ -61,7 +70,7 @@ struct WordleView: View {
         }
         .alert(game.state == .won ? "¡Lo conseguiste! 🎉" : "Game Over", isPresented: $showResult) {
             Button("Reintentar") { game.reset(); keyboardFocused = true }
-            Button("Ver Ranking") { path.append(Route.ranking(.wordle)) }
+            Button("Ver Ranking") { navigatedToRanking = true; path.append(Route.ranking(.wordle)) }
             Button("Menú", role: .cancel) { path.removeLast(path.count) }
         } message: {
             if game.state == .won {

@@ -8,7 +8,8 @@ struct Game2048View: View {
     @State private var showWin = false
     @State private var showOver = false
     @State private var isNewRecord = false
-    @State private var showInfo = false
+    @State private var showInfo            = false
+    @State private var navigatedToRanking  = false
     @Environment(\.rankingService) private var rankingService
     @AppStorage("playerName") private var playerName = ""
 
@@ -30,6 +31,14 @@ struct Game2048View: View {
                 controls
             }
             .padding(.top, 8)
+        }
+        .overlay {
+            if navigatedToRanking {
+                PostRankingOverlay(
+                    onNewGame: { navigatedToRanking = false; game.reset() },
+                    onMenu:    { navigatedToRanking = false; path.removeLast(path.count) }
+                )
+            }
         }
         .navigationTitle("2048 · \(difficulty.rawValue)")
         .navigationBarTitleDisplayMode(.inline)
@@ -64,12 +73,12 @@ struct Game2048View: View {
         .alert("¡Llegaste a \(game.goal)! 🎉", isPresented: $showWin) {
             Button("Seguir jugando") { }
             Button("Nuevo juego") { game.reset() }
-            Button("Ver Ranking") { path.append(Route.ranking(.game2048)) }
+            Button("Ver Ranking") { navigatedToRanking = true; path.append(Route.ranking(.game2048)) }
             Button("Menú", role: .cancel) { path.removeLast(path.count) }
         }
         .alert("Game Over", isPresented: $showOver) {
             Button("Reintentar") { game.reset() }
-            Button("Ver Ranking") { path.append(Route.ranking(.game2048)) }
+            Button("Ver Ranking") { navigatedToRanking = true; path.append(Route.ranking(.game2048)) }
             Button("Menú", role: .cancel) { path.removeLast(path.count) }
         } message: {
             Text(isNewRecord

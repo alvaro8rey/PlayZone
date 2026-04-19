@@ -7,7 +7,8 @@ struct MinesweeperView: View {
     @State private var game: MinesweeperGame
     @State private var showResult = false
     @State private var isNewRecord = false
-    @State private var showInfo = false
+    @State private var showInfo            = false
+    @State private var navigatedToRanking  = false
     @Environment(\.rankingService) private var rankingService
     @AppStorage("playerName") private var playerName = ""
 
@@ -36,6 +37,14 @@ struct MinesweeperView: View {
                 }
             }
         }
+        .overlay {
+            if navigatedToRanking {
+                PostRankingOverlay(
+                    onNewGame: { navigatedToRanking = false; game.reset() },
+                    onMenu:    { navigatedToRanking = false; path.removeLast(path.count) }
+                )
+            }
+        }
         .navigationTitle("Buscaminas · \(difficulty.rawValue)")
         .navigationBarTitleDisplayMode(.inline)
         .toolbarColorScheme(.dark, for: .navigationBar)
@@ -57,7 +66,7 @@ struct MinesweeperView: View {
         }
         .alert(game.state == .won ? "¡Ganaste! 🎉" : "¡Boom! 💥", isPresented: $showResult) {
             Button("Reintentar") { game.reset() }
-            Button("Ver Ranking") { path.append(Route.ranking(.minesweeper)) }
+            Button("Ver Ranking") { navigatedToRanking = true; path.append(Route.ranking(.minesweeper)) }
             Button("Menú", role: .cancel) { path.removeLast(path.count) }
         } message: {
             if game.state == .won {

@@ -10,7 +10,8 @@ struct ColorMatchView: View {
     @State private var blue:  Double = 127
     @State private var showSummary  = false
     @State private var isNewRecord  = false
-    @State private var showInfo = false
+    @State private var showInfo            = false
+    @State private var navigatedToRanking  = false
     @Environment(\.rankingService) private var rankingService
     @AppStorage("playerName") private var playerName = ""
 
@@ -53,6 +54,14 @@ struct ColorMatchView: View {
             .padding(.horizontal, 20)
             .padding(.top, 8)
         }
+        .overlay {
+            if navigatedToRanking {
+                PostRankingOverlay(
+                    onNewGame: { navigatedToRanking = false; game.reset() },
+                    onMenu:    { navigatedToRanking = false; path.removeLast(path.count) }
+                )
+            }
+        }
         .navigationTitle("Color Mix · \(difficulty.rawValue)")
         .navigationBarTitleDisplayMode(.inline)
         .toolbarColorScheme(.dark, for: .navigationBar)
@@ -69,7 +78,7 @@ struct ColorMatchView: View {
                 game: game,
                 isNewRecord: isNewRecord,
                 onNewGame: { showSummary = false; game.reset() },
-                onRanking: { showSummary = false; path.append(Route.ranking(.colorMatch)) },
+                onRanking: { showSummary = false; navigatedToRanking = true; path.append(Route.ranking(.colorMatch)) },
                 onMenu:    { showSummary = false; path.removeLast(path.count) }
             )
         }

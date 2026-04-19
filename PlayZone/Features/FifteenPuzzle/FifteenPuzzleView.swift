@@ -7,7 +7,8 @@ struct FifteenPuzzleView: View {
     @State private var game: FifteenPuzzleGame
     @State private var showResult  = false
     @State private var isNewRecord = false
-    @State private var showInfo    = false
+    @State private var showInfo            = false
+    @State private var navigatedToRanking  = false
     @Environment(\.rankingService) private var rankingService
     @AppStorage("playerName") private var playerName = ""
 
@@ -34,6 +35,14 @@ struct FifteenPuzzleView: View {
             .padding(.top, 8)
             .padding(.bottom, 16)
         }
+        .overlay {
+            if navigatedToRanking {
+                PostRankingOverlay(
+                    onNewGame: { navigatedToRanking = false; game.reset() },
+                    onMenu:    { navigatedToRanking = false; path.removeLast(path.count) }
+                )
+            }
+        }
         .navigationTitle("Puzzle \(game.size * game.size - 1) · \(difficulty.rawValue)")
         .navigationBarTitleDisplayMode(.inline)
         .toolbarColorScheme(.dark, for: .navigationBar)
@@ -55,7 +64,7 @@ struct FifteenPuzzleView: View {
         }
         .alert("¡Puzzle completado! 🎉", isPresented: $showResult) {
             Button("Nuevo juego") { game.reset() }
-            Button("Ver Ranking") { path.append(Route.ranking(.puzzle15)) }
+            Button("Ver Ranking") { navigatedToRanking = true; path.append(Route.ranking(.puzzle15)) }
             Button("Menú", role: .cancel) { path.removeLast(path.count) }
         } message: {
             Text(isNewRecord

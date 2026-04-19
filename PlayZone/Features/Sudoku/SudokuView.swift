@@ -7,7 +7,8 @@ struct SudokuView: View {
     @State private var game: SudokuGame
     @State private var showResult = false
     @State private var isNewRecord = false
-    @State private var showInfo = false
+    @State private var showInfo            = false
+    @State private var navigatedToRanking  = false
     @Environment(\.rankingService) private var rankingService
     @AppStorage("playerName") private var playerName = ""
 
@@ -56,6 +57,14 @@ struct SudokuView: View {
                 }
             }
         }
+        .overlay {
+            if navigatedToRanking {
+                PostRankingOverlay(
+                    onNewGame: { navigatedToRanking = false; Task { await game.load() } },
+                    onMenu:    { navigatedToRanking = false; path.removeLast(path.count) }
+                )
+            }
+        }
         .navigationTitle("Sudoku · \(difficulty.rawValue)")
         .navigationBarTitleDisplayMode(.inline)
         .toolbarColorScheme(.dark, for: .navigationBar)
@@ -78,7 +87,7 @@ struct SudokuView: View {
         }
         .alert("¡Sudoku Completado! 🎉", isPresented: $showResult) {
             Button("Nuevo juego") { Task { await game.load() } }
-            Button("Ver Ranking") { path.append(Route.ranking(.sudoku)) }
+            Button("Ver Ranking") { navigatedToRanking = true; path.append(Route.ranking(.sudoku)) }
             Button("Menú", role: .cancel) { path.removeLast(path.count) }
         } message: {
             Text(isNewRecord

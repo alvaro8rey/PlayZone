@@ -7,7 +7,8 @@ struct MemoryView: View {
     @State private var game: MemoryGame
     @State private var showResult = false
     @State private var isNewRecord = false
-    @State private var showInfo = false
+    @State private var showInfo            = false
+    @State private var navigatedToRanking  = false
     @Environment(\.rankingService) private var rankingService
     @AppStorage("playerName") private var playerName = ""
 
@@ -38,6 +39,14 @@ struct MemoryView: View {
             }
             .padding(.top, 8)
         }
+        .overlay {
+            if navigatedToRanking {
+                PostRankingOverlay(
+                    onNewGame: { navigatedToRanking = false; game.reset() },
+                    onMenu:    { navigatedToRanking = false; path.removeLast(path.count) }
+                )
+            }
+        }
         .navigationTitle("Memoria · \(difficulty.rawValue)")
         .navigationBarTitleDisplayMode(.inline)
         .toolbarColorScheme(.dark, for: .navigationBar)
@@ -59,7 +68,7 @@ struct MemoryView: View {
         }
         .alert("¡Completado! 🎉", isPresented: $showResult) {
             Button("Nuevo juego") { game.reset() }
-            Button("Ver Ranking") { path.append(Route.ranking(.memory)) }
+            Button("Ver Ranking") { navigatedToRanking = true; path.append(Route.ranking(.memory)) }
             Button("Menú", role: .cancel) { path.removeLast(path.count) }
         } message: {
             Text(isNewRecord
