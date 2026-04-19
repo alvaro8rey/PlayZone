@@ -97,6 +97,8 @@ extension GameType {
             return "Toca cualquier celda para cambiar su estado (encendida/apagada) junto con el de sus vecinas arriba, abajo, izquierda y derecha. El objetivo es apagar todas las luces. El puzzle siempre tiene solución. Cuantos menos movimientos uses, mejor."
         case .puzzle15:
             return "Desliza las fichas numeradas al hueco vacío para ordenarlas de menor a mayor de izquierda a derecha y de arriba a abajo, dejando el hueco en la última posición. Solo puedes mover fichas adyacentes al hueco. Complétalo lo más rápido posible."
+        case .tetris:
+            return "Las piezas caen desde arriba. Usa los botones para moverlas izquierda/derecha, rotarlas o bajarlas. Pulsa la flecha doble para dejarlas caer al instante. Cuando una fila se rellena completamente, desaparece y sumas puntos. ¡El juego termina si las piezas llegan arriba!"
         }
     }
 
@@ -126,6 +128,8 @@ extension GameType {
             return "Se registra el número de movimientos que necesitas para apagar todas las luces. Cuantos menos movimientos, mejor tu posición. Tu mejor marca se guarda por tamaño de tablero (3×3, 5×5, 7×7)."
         case .puzzle15:
             return "Se registra el tiempo total que tardas en ordenar todas las fichas correctamente. Cuanto menos tardes, mejor tu posición. Tu mejor marca se guarda por dificultad (8, 15 y 24-puzzle)."
+        case .tetris:
+            return "La puntuación depende de cuántas líneas completes a la vez: 1 línea = 100 pts, 2 = 300, 3 = 500, 4 (Tetris) = 800. Todo multiplicado por el nivel actual. Se guarda la puntuación más alta por dificultad."
         }
     }
 }

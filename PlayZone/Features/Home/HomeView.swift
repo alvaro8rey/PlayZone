@@ -303,6 +303,7 @@ struct FeaturedCard: View {
         case .nonogram:    path.append(Route.nonogram(difficulty))
         case .lightsOut:   path.append(Route.lightsOut(difficulty))
         case .puzzle15:    path.append(Route.puzzle15(difficulty))
+        case .tetris:      path.append(Route.tetris(difficulty))
         }
     }
 }
@@ -412,6 +413,7 @@ struct GameCard: View {
         case .nonogram:    path.append(Route.nonogram(difficulty))
         case .lightsOut:   path.append(Route.lightsOut(difficulty))
         case .puzzle15:    path.append(Route.puzzle15(difficulty))
+        case .tetris:      path.append(Route.tetris(difficulty))
         }
     }
 }
