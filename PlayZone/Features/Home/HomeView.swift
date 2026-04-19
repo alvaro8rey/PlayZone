@@ -173,6 +173,7 @@ struct GameIconView: View {
                     .resizable()
                     .scaledToFit()
                     .frame(width: size, height: size)
+                    .foregroundStyle(.white)
             } else {
                 Image(systemName: game.icon)
                     .font(.system(size: size * 0.85, weight: .semibold))
