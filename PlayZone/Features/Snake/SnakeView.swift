@@ -174,10 +174,10 @@ struct SnakeView: View {
 
     private var startOverlay: some View {
         VStack(spacing: 16) {
-            Image(systemName: "play.circle.fill")
+            Image(systemName: "arrow.up")
                 .font(.system(size: 64))
                 .foregroundStyle(Color(hex: "14B8A6"))
-            Text("Toca una flecha para\nempezar")
+            Text("Desliza para\nempezar")
                 .font(.headline)
                 .foregroundStyle(.white)
                 .multilineTextAlignment(.center)
