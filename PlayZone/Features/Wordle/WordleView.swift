@@ -9,6 +9,7 @@ struct WordleView: View {
     @State private var showResult = false
     @State private var isNewRecord = false
     @State private var shakeRow: Int? = nil
+    @State private var showInfo = false
     @State private var keyboardFocused = false
     @Environment(\.rankingService) private var rankingService
     @AppStorage("playerName") private var playerName = ""
@@ -40,6 +41,14 @@ struct WordleView: View {
         .navigationTitle("Wordle · \(difficulty.rawValue) (\(game.wordLength) letras)")
         .navigationBarTitleDisplayMode(.inline)
         .toolbarColorScheme(.dark, for: .navigationBar)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button { showInfo = true } label: {
+                    Image(systemName: "info.circle").foregroundStyle(.white)
+                }
+            }
+        }
+        .sheet(isPresented: $showInfo) { GameInfoSheet(game: .wordle) }
         .onAppear { keyboardFocused = true }
         .onChange(of: game.state) { _, st in
             guard st != .playing else { return }

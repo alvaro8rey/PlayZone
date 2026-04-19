@@ -7,6 +7,7 @@ struct SnakeView: View {
     @State private var game: SnakeGame
     @State private var showOver = false
     @State private var isNewRecord = false
+    @State private var showInfo = false
     @Environment(\.rankingService) private var rankingService
     @AppStorage("playerName") private var playerName = ""
 
@@ -37,6 +38,14 @@ struct SnakeView: View {
         .navigationTitle("Snake · \(difficulty.rawValue)")
         .navigationBarTitleDisplayMode(.inline)
         .toolbarColorScheme(.dark, for: .navigationBar)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button { showInfo = true } label: {
+                    Image(systemName: "info.circle").foregroundStyle(.white)
+                }
+            }
+        }
+        .sheet(isPresented: $showInfo) { GameInfoSheet(game: .snake) }
         .onChange(of: game.state) { _, st in
             if st == .over {
                 Task {

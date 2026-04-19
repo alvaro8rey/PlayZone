@@ -10,6 +10,7 @@ struct ColorMatchView: View {
     @State private var blue:  Double = 127
     @State private var showFinished = false
     @State private var isNewRecord  = false
+    @State private var showInfo = false
     @Environment(\.rankingService) private var rankingService
     @AppStorage("playerName") private var playerName = ""
 
@@ -51,6 +52,14 @@ struct ColorMatchView: View {
         .navigationTitle("Color Mix · \(difficulty.rawValue)")
         .navigationBarTitleDisplayMode(.inline)
         .toolbarColorScheme(.dark, for: .navigationBar)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button { showInfo = true } label: {
+                    Image(systemName: "info.circle").foregroundStyle(.white)
+                }
+            }
+        }
+        .sheet(isPresented: $showInfo) { GameInfoSheet(game: .colorMatch) }
         .onChange(of: game.state) { _, st in
             if st == .playing {
                 red = 127; green = 127; blue = 127

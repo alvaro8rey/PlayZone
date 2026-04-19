@@ -25,6 +25,7 @@ struct SpellingBeeView: View {
 
     @State private var game: SpellingBeeGame
     @State private var showFoundWords = false
+    @State private var showInfo = false
     @State private var feedbackText   = ""
     @State private var feedbackColor  = Color.green
     @State private var showFeedback   = false
@@ -81,6 +82,14 @@ struct SpellingBeeView: View {
         .navigationTitle("Spelling Bee · \(difficulty.rawValue)")
         .navigationBarTitleDisplayMode(.inline)
         .toolbarColorScheme(.dark, for: .navigationBar)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button { showInfo = true } label: {
+                    Image(systemName: "info.circle").foregroundStyle(.white)
+                }
+            }
+        }
+        .sheet(isPresented: $showInfo) { GameInfoSheet(game: .spellingBee) }
         .sheet(isPresented: $showFoundWords) { foundWordsSheet }
     }
 

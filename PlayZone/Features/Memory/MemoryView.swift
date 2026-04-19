@@ -7,6 +7,7 @@ struct MemoryView: View {
     @State private var game: MemoryGame
     @State private var showResult = false
     @State private var isNewRecord = false
+    @State private var showInfo = false
     @Environment(\.rankingService) private var rankingService
     @AppStorage("playerName") private var playerName = ""
 
@@ -40,6 +41,14 @@ struct MemoryView: View {
         .navigationTitle("Memoria · \(difficulty.rawValue)")
         .navigationBarTitleDisplayMode(.inline)
         .toolbarColorScheme(.dark, for: .navigationBar)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button { showInfo = true } label: {
+                    Image(systemName: "info.circle").foregroundStyle(.white)
+                }
+            }
+        }
+        .sheet(isPresented: $showInfo) { GameInfoSheet(game: .memory) }
         .onChange(of: game.isComplete) { _, complete in
             if complete {
                 Task {

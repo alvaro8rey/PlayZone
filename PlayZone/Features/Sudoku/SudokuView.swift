@@ -7,6 +7,7 @@ struct SudokuView: View {
     @State private var game: SudokuGame
     @State private var showResult = false
     @State private var isNewRecord = false
+    @State private var showInfo = false
     @Environment(\.rankingService) private var rankingService
     @AppStorage("playerName") private var playerName = ""
 
@@ -58,6 +59,14 @@ struct SudokuView: View {
         .navigationTitle("Sudoku · \(difficulty.rawValue)")
         .navigationBarTitleDisplayMode(.inline)
         .toolbarColorScheme(.dark, for: .navigationBar)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button { showInfo = true } label: {
+                    Image(systemName: "info.circle").foregroundStyle(.white)
+                }
+            }
+        }
+        .sheet(isPresented: $showInfo) { GameInfoSheet(game: .sudoku) }
         .task { await game.load() }
         .onChange(of: game.isComplete) { _, complete in
             if complete {

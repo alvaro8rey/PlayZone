@@ -8,6 +8,7 @@ struct BreakoutView: View {
     @State private var showOver  = false
     @State private var showWin   = false
     @State private var isNewRecord = false
+    @State private var showInfo = false
     @Environment(\.rankingService) private var rankingService
     @AppStorage("playerName") private var playerName = ""
 
@@ -29,6 +30,14 @@ struct BreakoutView: View {
         .navigationTitle("Breakout · \(difficulty.rawValue)")
         .navigationBarTitleDisplayMode(.inline)
         .toolbarColorScheme(.dark, for: .navigationBar)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button { showInfo = true } label: {
+                    Image(systemName: "info.circle").foregroundStyle(.white)
+                }
+            }
+        }
+        .sheet(isPresented: $showInfo) { GameInfoSheet(game: .breakout) }
         .background(SwipeBackDisabler())
         .onChange(of: game.state) { _, st in
             guard st != .playing, st != .idle else { return }

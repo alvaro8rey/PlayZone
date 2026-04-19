@@ -7,6 +7,7 @@ struct MinesweeperView: View {
     @State private var game: MinesweeperGame
     @State private var showResult = false
     @State private var isNewRecord = false
+    @State private var showInfo = false
     @Environment(\.rankingService) private var rankingService
     @AppStorage("playerName") private var playerName = ""
 
@@ -38,6 +39,14 @@ struct MinesweeperView: View {
         .navigationTitle("Buscaminas · \(difficulty.rawValue)")
         .navigationBarTitleDisplayMode(.inline)
         .toolbarColorScheme(.dark, for: .navigationBar)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button { showInfo = true } label: {
+                    Image(systemName: "info.circle").foregroundStyle(.white)
+                }
+            }
+        }
+        .sheet(isPresented: $showInfo) { GameInfoSheet(game: .minesweeper) }
         .onChange(of: game.state) { _, newState in
             if newState == .won || newState == .lost {
                 Task {

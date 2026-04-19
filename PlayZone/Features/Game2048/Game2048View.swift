@@ -8,6 +8,7 @@ struct Game2048View: View {
     @State private var showWin = false
     @State private var showOver = false
     @State private var isNewRecord = false
+    @State private var showInfo = false
     @Environment(\.rankingService) private var rankingService
     @AppStorage("playerName") private var playerName = ""
 
@@ -33,6 +34,14 @@ struct Game2048View: View {
         .navigationTitle("2048 · \(difficulty.rawValue)")
         .navigationBarTitleDisplayMode(.inline)
         .toolbarColorScheme(.dark, for: .navigationBar)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button { showInfo = true } label: {
+                    Image(systemName: "info.circle").foregroundStyle(.white)
+                }
+            }
+        }
+        .sheet(isPresented: $showInfo) { GameInfoSheet(game: .game2048) }
         .background(
             SwipeCapture { dir in
                 switch dir {
