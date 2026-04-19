@@ -143,7 +143,7 @@ struct MemoryCardView: View {
                           ? LinearGradient(colors: [Color(hex: "6D28D9"), Color(hex: "A855F7")], startPoint: .topLeading, endPoint: .bottomTrailing)
                           : LinearGradient(colors: [Color(hex: "4C1D95"), Color(hex: "7C3AED")], startPoint: .topLeading, endPoint: .bottomTrailing))
                 Image(systemName: card.symbol)
-                    .font(.system(size: 28, weight: .semibold))
+                    .font(.system(size: 40, weight: .semibold))
                     .foregroundStyle(.white)
             } else {
                 RoundedRectangle(cornerRadius: 12)
