@@ -29,6 +29,7 @@ struct SpellingBeeView: View {
     @State private var feedbackColor  = Color.green
     @State private var showFeedback   = false
     @State private var isNewRecord    = false
+    @State private var hoveredHexIndex: Int? = nil
     @AppStorage("playerName") private var playerName = ""
     @Environment(\.rankingService)   private var rankingService
 
@@ -184,42 +185,65 @@ struct SpellingBeeView: View {
             let cy   = geo.size.height / 2
 
             let positions: [(CGFloat, CGFloat)] = [
-                (cx, cy),                  // 0 center
-                (cx - dx, cy),             // 1 left
-                (cx + dx, cy),             // 2 right
-                (cx - dx / 2, cy - dy),    // 3 upper-left
-                (cx + dx / 2, cy - dy),    // 4 upper-right
-                (cx - dx / 2, cy + dy),    // 5 lower-left
-                (cx + dx / 2, cy + dy),    // 6 lower-right
+                (cx,           cy      ),   // 0 center
+                (cx - dx,      cy      ),   // 1 left
+                (cx + dx,      cy      ),   // 2 right
+                (cx - dx / 2,  cy - dy ),   // 3 upper-left
+                (cx + dx / 2,  cy - dy ),   // 4 upper-right
+                (cx - dx / 2,  cy + dy ),   // 5 lower-left
+                (cx + dx / 2,  cy + dy ),   // 6 lower-right
             ]
             let letters = [game.centerLetter] + game.outerLetters
 
             ZStack {
                 ForEach(0..<7, id: \.self) { i in
-                    hexButton(letter: letters[i], isCenter: i == 0, R: R)
+                    hexCell(letter: letters[i], isCenter: i == 0,
+                            isHovered: hoveredHexIndex == i, R: R)
                         .position(x: positions[i].0, y: positions[i].1)
                 }
             }
+            .contentShape(Rectangle())
+            .gesture(
+                DragGesture(minimumDistance: 0)
+                    .onChanged { val in
+                        guard game.currentInput.count < 5 else { return }
+                        let pt  = val.location
+                        var hit: Int? = nil
+                        for (i, pos) in positions.enumerated() {
+                            if hypot(pt.x - pos.0, pt.y - pos.1) < R * 0.92 {
+                                hit = i; break
+                            }
+                        }
+                        guard hit != hoveredHexIndex else { return }
+                        hoveredHexIndex = hit
+                        guard let idx = hit else { return }
+                        game.addLetter(letters[idx])
+                        if game.currentInput.count == 5 {
+                            handleSubmit()
+                            hoveredHexIndex = nil
+                        }
+                    }
+                    .onEnded { _ in
+                        hoveredHexIndex = nil
+                    }
+            )
         }
     }
 
-    private func hexButton(letter: Character, isCenter: Bool, R: CGFloat) -> some View {
-        let w = R * sqrt(3.0)
-        let h = R * 2.0
-        return Button {
-            game.addLetter(letter)
-        } label: {
-            ZStack {
-                HexShape()
-                    .fill(isCenter ? Color(hex: "EAB308") : Color(hex: "B45309"))
-                    .overlay(HexShape().stroke(Color.black.opacity(0.2), lineWidth: 1))
-                Text(String(letter).uppercased())
-                    .font(.system(size: R * 0.55, weight: .bold))
-                    .foregroundStyle(.white)
-            }
-            .frame(width: w, height: h)
+    private func hexCell(letter: Character, isCenter: Bool, isHovered: Bool, R: CGFloat) -> some View {
+        ZStack {
+            HexShape()
+                .fill(isHovered ? Color.white
+                      : isCenter ? Color(hex: "EAB308")
+                      : Color(hex: "B45309"))
+                .overlay(HexShape().stroke(Color.black.opacity(0.2), lineWidth: 1))
+            Text(String(letter).uppercased())
+                .font(.system(size: R * 0.55, weight: .bold))
+                .foregroundStyle(isHovered ? Color.black : .white)
         }
-        .buttonStyle(.plain)
+        .frame(width: R * sqrt(3.0), height: R * 2.0)
+        .scaleEffect(isHovered ? 1.08 : 1.0)
+        .animation(.spring(response: 0.15, dampingFraction: 0.7), value: isHovered)
     }
 
     // MARK: - Action buttons
