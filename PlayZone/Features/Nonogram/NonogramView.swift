@@ -152,17 +152,17 @@ struct NonogramView: View {
         ZStack {
             // Top & Bottom
             VStack {
-                panArrowButton("chevron.compact.up") { doPan(dy: -panStep) }
+                panArrowButton("chevron.compact.up") { doPan(dy: panStep) }
                 Spacer()
-                panArrowButton("chevron.compact.down") { doPan(dy: panStep) }
+                panArrowButton("chevron.compact.down") { doPan(dy: -panStep) }
             }
             .frame(maxWidth: .infinity)
 
             // Left & Right
             HStack {
-                panArrowButton("chevron.compact.left") { doPan(dx: -panStep) }
+                panArrowButton("chevron.compact.left") { doPan(dx: panStep) }
                 Spacer()
-                panArrowButton("chevron.compact.right") { doPan(dx: panStep) }
+                panArrowButton("chevron.compact.right") { doPan(dx: -panStep) }
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -245,7 +245,7 @@ struct NonogramView: View {
             // Column clue header
             HStack(spacing: 0) {
                 // Top-left corner matches clue background
-                Color(hex: "141F2E").frame(width: rowClueW, height: colClueH)
+                Color(hex: "1A3254").frame(width: rowClueW, height: colClueH)
                 ForEach(0..<n, id: \.self) { col in
                     if col > 0 { separatorV(col: col, n: n, h: colClueH) }
                     colClueCell(col: col, cellW: cs, clueH: colClueH, font: font, slot: slot)
@@ -288,8 +288,8 @@ struct NonogramView: View {
 
     // Clue band: alternates every 2 rows/cols
     private func clueBg(index: Int, isComplete: Bool) -> Color {
-        if isComplete { return Color(hex: "0B2E17") }
-        return (index / 2) % 2 == 0 ? Color(hex: "162030") : Color(hex: "1E2D42")
+        if isComplete { return Color(hex: "0B3320") }
+        return (index / 2) % 2 == 0 ? Color(hex: "1A3254") : Color(hex: "213C64")
     }
 
     private func colClueCell(col: Int, cellW: CGFloat, clueH: CGFloat,
@@ -340,7 +340,7 @@ struct NonogramView: View {
         let state = game.marks[row][col]
         return ZStack {
             Rectangle()
-                .fill(state == .filled ? Color(hex: "6366F1") : Color(hex: "1E2D40"))
+                .fill(state == .filled ? Color(hex: "6366F1") : Color(hex: "0D1B2C"))
             if state == .crossed {
                 Image(systemName: "xmark")
                     .font(.system(size: max(8, size * 0.38), weight: .bold))
