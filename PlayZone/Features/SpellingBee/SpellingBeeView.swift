@@ -31,7 +31,6 @@ struct SpellingBeeView: View {
     @State private var showFeedback        = false
     @State private var isNewRecord         = false
     @State private var hoveredHexIndex: Int? = nil
-    @State private var navigatedToRanking  = false
     @AppStorage("playerName") private var playerName = ""
     @Environment(\.rankingService)   private var rankingService
 
@@ -81,14 +80,6 @@ struct SpellingBeeView: View {
             }
         }
         .background(SwipeBackDisabler())
-        .overlay {
-            if navigatedToRanking {
-                PostRankingOverlay(
-                    onNewGame: { navigatedToRanking = false },
-                    onMenu:    { navigatedToRanking = false; path.removeLast(path.count) }
-                )
-            }
-        }
         .navigationTitle("Spelling Bee · \(difficulty.rawValue)")
         .navigationBarTitleDisplayMode(.inline)
         .toolbarColorScheme(.dark, for: .navigationBar)
@@ -123,7 +114,6 @@ struct SpellingBeeView: View {
                 HStack(spacing: 8) {
                     Button {
                         saveScoreIfBetter()
-                        navigatedToRanking = true
                         path.append(Route.ranking(.spellingBee))
                     } label: {
                         Image(systemName: "trophy.fill")
@@ -252,14 +242,10 @@ struct SpellingBeeView: View {
                     }
                     .onEnded { val in
                         defer { hoveredHexIndex = nil }
-                        guard game.currentInput.count < 5 else { return }
                         let pt = val.location
                         for (i, pos) in positions.enumerated() {
                             if hypot(pt.x - pos.0, pt.y - pos.1) < R * 0.92 {
                                 game.addLetter(letters[i])
-                                if game.currentInput.count == 5 {
-                                    handleSubmit()
-                                }
                                 return
                             }
                         }
