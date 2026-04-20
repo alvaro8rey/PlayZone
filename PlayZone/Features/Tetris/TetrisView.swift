@@ -164,6 +164,7 @@ struct TetrisView: View {
             statBox(title: "LÍNEAS", value: "\(game.lines)")
             statBox(title: "NIVEL",  value: "\(game.level)")
             nextPieceBox
+            holdBox
             Spacer()
         }
         .frame(width: 80)
@@ -208,6 +209,36 @@ struct TetrisView: View {
         .clipShape(RoundedRectangle(cornerRadius: 8))
     }
 
+    private var holdBox: some View {
+        VStack(spacing: 4) {
+            Text("HOLD").font(.system(size: 9, weight: .bold)).foregroundStyle(Color(hex: "94A3B8"))
+            Canvas { ctx, size in
+                guard let type = game.held else { return }
+                let cellSize: CGFloat = 14
+                let cells = type.cells
+                let pieceW = CGFloat(cells[0].count) * cellSize
+                let pieceH = CGFloat(cells.count) * cellSize
+                let offsetX = (size.width - pieceW) / 2
+                let offsetY = (size.height - pieceH) / 2
+                let alpha: CGFloat = game.canHold ? 1.0 : 0.4
+                for r in 0..<cells.count {
+                    for c in 0..<cells[r].count {
+                        guard cells[r][c] else { continue }
+                        let rect = CGRect(x: offsetX + CGFloat(c) * cellSize + 1,
+                                         y: offsetY + CGFloat(r) * cellSize + 1,
+                                         width: cellSize - 2, height: cellSize - 2)
+                        ctx.fill(Path(roundedRect: rect, cornerRadius: 2), with: .color(type.color.opacity(alpha)))
+                    }
+                }
+            }
+            .frame(width: 70, height: 50)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 8)
+        .background(Color(hex: "1E293B"))
+        .clipShape(RoundedRectangle(cornerRadius: 8))
+    }
+
     // MARK: - Controls
 
     private var controlPad: some View {
@@ -218,19 +249,23 @@ struct TetrisView: View {
                 controlBtn("arrow.down", wide: false) { game.softDrop() }
                 controlBtn("arrow.right", wide: false) { game.moveRight() }
             }
-            controlBtn("arrow.down.to.line", wide: true) { game.hardDrop() }
+            HStack(spacing: 10) {
+                controlBtn("tray.and.arrow.down.fill", wide: true, disabled: !game.canHold) { game.holdPiece() }
+                controlBtn("arrow.down.to.line", wide: true) { game.hardDrop() }
+            }
         }
     }
 
-    private func controlBtn(_ icon: String, wide: Bool, action: @escaping () -> Void) -> some View {
+    private func controlBtn(_ icon: String, wide: Bool, disabled: Bool = false, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Image(systemName: icon)
                 .font(.title2.bold())
-                .foregroundStyle(.white)
+                .foregroundStyle(disabled ? Color(hex: "475569") : .white)
                 .frame(minWidth: 64, maxWidth: wide ? .infinity : nil, minHeight: 52)
                 .background(Color(hex: "1E293B"))
                 .clipShape(RoundedRectangle(cornerRadius: 12))
         }
+        .disabled(disabled)
     }
 
     // MARK: - Start Overlay

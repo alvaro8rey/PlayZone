@@ -79,6 +79,8 @@ final class TetrisGame {
     private(set) var board: [[TetrisCell]]
     private(set) var current: TetrisPiece?
     private(set) var next: TetrominoType
+    private(set) var held: TetrominoType? = nil
+    private(set) var canHold: Bool = true
     private(set) var state: TetrisState = .idle
     private(set) var score: Int = 0
     private(set) var lines: Int = 0
@@ -111,6 +113,18 @@ final class TetrisGame {
         guard state == .idle else { return }
         state = .playing
         scheduleTimer()
+    }
+
+    func holdPiece() {
+        guard state == .playing, canHold, let p = current else { return }
+        canHold = false
+        if let previous = held {
+            held = p.type
+            current = TetrisPiece(type: previous, startCol: TetrisGame.cols / 2)
+        } else {
+            held = p.type
+            spawnPiece()
+        }
     }
 
     func moveLeft() {
@@ -174,6 +188,8 @@ final class TetrisGame {
         lines = 0
         level = 1
         bag = []
+        held = nil
+        canHold = true
         next = Self.drawFromBag(&bag)
         refillBag()
         state = .idle
@@ -217,6 +233,7 @@ final class TetrisGame {
         lines += cleared
         score += scoreForLines(cleared)
         level = 1 + lines / 10
+        canHold = true
         timer?.invalidate()
         spawnPiece()
         if let newPiece = current, collides(newPiece) {
