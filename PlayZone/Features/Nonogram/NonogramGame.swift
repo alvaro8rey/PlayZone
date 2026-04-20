@@ -27,7 +27,7 @@ final class NonogramGame {
     private(set) var isUnique          = true
 
     private var solution:  [[Bool]] = []
-    private var timer:     Timer?
+    nonisolated(unsafe) private var timer: Timer?
     private var startDate  = Date()
 
     init(difficulty: Difficulty) {
