@@ -105,4 +105,6 @@ final class MemoryGame {
     }
 
     func stopTimer() { timer?.invalidate(); timer = nil }
+
+    deinit { stopTimer() }
 }

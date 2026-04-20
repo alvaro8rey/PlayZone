@@ -116,6 +116,12 @@ struct SudokuView: View {
                     .font(.subheadline.bold())
                     .foregroundStyle(game.notesMode ? Color(hex: "3B82F6") : Color(hex: "94A3B8"))
             }
+            Button { Task { await game.load() } } label: {
+                Image(systemName: "arrow.counterclockwise")
+                    .font(.subheadline.bold())
+                    .foregroundStyle(Color(hex: "94A3B8"))
+            }
+            .padding(.leading, 6)
         }
     }
 

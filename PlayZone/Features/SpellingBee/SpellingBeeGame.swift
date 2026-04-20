@@ -98,7 +98,7 @@ final class SpellingBeeGame {
             let center       = uniqueChars.randomElement()!
             var letterSet    = Set(uniqueChars)
 
-            let alphabet = Array("abcdefghijlmnoprstuvz")
+            let alphabet = Array("abcdefghijklmnopqrstuvwxyz")
             while letterSet.count < 7 {
                 if let l = alphabet.randomElement() { letterSet.insert(l) }
             }

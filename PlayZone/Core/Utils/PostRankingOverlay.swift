@@ -7,6 +7,7 @@ struct PostRankingOverlay: View {
     var body: some View {
         ZStack {
             Color.black.opacity(0.65).ignoresSafeArea()
+                .onTapGesture { onNewGame() }
 
             VStack(spacing: 14) {
                 Image(systemName: "trophy.fill")

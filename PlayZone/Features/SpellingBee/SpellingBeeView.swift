@@ -26,11 +26,12 @@ struct SpellingBeeView: View {
     @State private var game: SpellingBeeGame
     @State private var showFoundWords = false
     @State private var showInfo = false
-    @State private var feedbackText   = ""
-    @State private var feedbackColor  = Color.green
-    @State private var showFeedback   = false
-    @State private var isNewRecord    = false
+    @State private var feedbackText        = ""
+    @State private var feedbackColor       = Color.green
+    @State private var showFeedback        = false
+    @State private var isNewRecord         = false
     @State private var hoveredHexIndex: Int? = nil
+    @State private var navigatedToRanking  = false
     @AppStorage("playerName") private var playerName = ""
     @Environment(\.rankingService)   private var rankingService
 
@@ -79,6 +80,15 @@ struct SpellingBeeView: View {
                 }
             }
         }
+        .background(SwipeBackDisabler())
+        .overlay {
+            if navigatedToRanking {
+                PostRankingOverlay(
+                    onNewGame: { navigatedToRanking = false },
+                    onMenu:    { navigatedToRanking = false; path.removeLast(path.count) }
+                )
+            }
+        }
         .navigationTitle("Spelling Bee · \(difficulty.rawValue)")
         .navigationBarTitleDisplayMode(.inline)
         .toolbarColorScheme(.dark, for: .navigationBar)
@@ -110,17 +120,32 @@ struct SpellingBeeView: View {
                 Text("Récord: \(record)")
                     .font(.subheadline.bold())
                     .foregroundStyle(Color(hex: "94A3B8"))
-                Button {
-                    saveScoreIfBetter()
-                    game.newGame()
-                } label: {
-                    Text("Nuevo")
-                        .font(.subheadline.bold())
-                        .foregroundStyle(.white)
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 6)
-                        .background(Color(hex: "3B82F6"))
-                        .clipShape(Capsule())
+                HStack(spacing: 8) {
+                    Button {
+                        saveScoreIfBetter()
+                        navigatedToRanking = true
+                        path.append(Route.ranking(.spellingBee))
+                    } label: {
+                        Image(systemName: "trophy.fill")
+                            .font(.subheadline.bold())
+                            .foregroundStyle(.yellow)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 6)
+                            .background(Color(hex: "1E293B"))
+                            .clipShape(Capsule())
+                    }
+                    Button {
+                        saveScoreIfBetter()
+                        game.newGame()
+                    } label: {
+                        Text("Nuevo")
+                            .font(.subheadline.bold())
+                            .foregroundStyle(.white)
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 6)
+                            .background(Color(hex: "3B82F6"))
+                            .clipShape(Capsule())
+                    }
                 }
             }
         }

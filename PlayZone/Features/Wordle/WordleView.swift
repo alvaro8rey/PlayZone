@@ -50,6 +50,11 @@ struct WordleView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbarColorScheme(.dark, for: .navigationBar)
         .toolbar {
+            ToolbarItem(placement: .navigationBarLeading) {
+                Button { game.reset() } label: {
+                    Image(systemName: "arrow.counterclockwise").foregroundStyle(.white)
+                }
+            }
             ToolbarItem(placement: .navigationBarTrailing) {
                 Button { showInfo = true } label: {
                     Image(systemName: "info.circle").foregroundStyle(.white)
