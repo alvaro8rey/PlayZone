@@ -13,6 +13,7 @@ struct MastermindView: View {
     @AppStorage("playerName") private var playerName = ""
 
     private var pegSize: CGFloat { game.codeLength == 5 ? 34 : 40 }
+    private var potentialScore: Int { (game.maxAttempts - game.rows.count) * 100 }
 
     init(difficulty: Difficulty, path: Binding<NavigationPath>) {
         self.difficulty = difficulty
@@ -97,10 +98,19 @@ struct MastermindView: View {
     private var statsRow: some View {
         HStack {
             VStack(alignment: .leading, spacing: 2) {
-                Text("Intentos").font(.caption.bold()).foregroundStyle(Color(hex: "94A3B8"))
+                Text("Intento").font(.caption.bold()).foregroundStyle(Color(hex: "94A3B8"))
                 Text("\(game.rows.count + (game.state == .playing ? 1 : 0)) / \(game.maxAttempts)")
                     .font(.headline.bold().monospacedDigit())
                     .foregroundStyle(.white)
+            }
+            Spacer()
+            if game.state == .playing {
+                VStack(spacing: 2) {
+                    Text("Si aciertas ahora").font(.caption.bold()).foregroundStyle(Color(hex: "94A3B8"))
+                    Text("\(potentialScore) pts")
+                        .font(.headline.bold().monospacedDigit())
+                        .foregroundStyle(Color(hex: "EC4899"))
+                }
             }
             Spacer()
             Button { game.reset() } label: {
@@ -116,6 +126,8 @@ struct MastermindView: View {
         ScrollViewReader { proxy in
             ScrollView {
                 VStack(spacing: 6) {
+                    legendRow
+                        .padding(.bottom, 4)
                     ForEach(0..<game.maxAttempts, id: \.self) { i in
                         boardRow(index: i)
                             .id(i)
@@ -129,6 +141,21 @@ struct MastermindView: View {
                     proxy.scrollTo(min(count, game.maxAttempts - 1), anchor: .center)
                 }
             }
+        }
+    }
+
+    private var legendRow: some View {
+        HStack(spacing: 20) {
+            Spacer()
+            HStack(spacing: 6) {
+                Circle().fill(Color(hex: "F1F5F9")).frame(width: 12, height: 12)
+                Text("Posición correcta").font(.caption2).foregroundStyle(Color(hex: "94A3B8"))
+            }
+            HStack(spacing: 6) {
+                Circle().fill(Color(hex: "F59E0B")).frame(width: 12, height: 12)
+                Text("Color correcto").font(.caption2).foregroundStyle(Color(hex: "94A3B8"))
+            }
+            Spacer()
         }
     }
 
@@ -159,8 +186,15 @@ struct MastermindView: View {
                                 lineWidth: 1.5
                             )
                         )
+                        .overlay(
+                            isCurrent && pegs[i] != nil
+                                ? Circle().stroke(.white.opacity(0.3), lineWidth: 1.5)
+                                : nil
+                        )
                         .frame(width: pegSize, height: pegSize)
-                        .opacity(isPast || isCurrent ? 1 : 0.25)
+                        .opacity(isPast || isCurrent ? 1 : 0.2)
+                        .scaleEffect(isCurrent && pegs[i] != nil ? 1.0 : (isCurrent ? 0.88 : 1.0))
+                        .animation(.spring(response: 0.25, dampingFraction: 0.6), value: pegs[i] != nil)
                         .onTapGesture {
                             if isCurrent { game.removePeg(at: i) }
                         }
@@ -187,22 +221,22 @@ struct MastermindView: View {
 
     private func feedbackDots(blacks: Int, whites: Int, total: Int) -> some View {
         let colors: [Color] = (0..<total).map { i in
-            if i < blacks         { return Color(hex: "F1F5F9") }
-            if i < blacks + whites { return Color(hex: "64748B") }
+            if i < blacks          { return Color(hex: "F1F5F9") }
+            if i < blacks + whites { return Color(hex: "F59E0B") }
             return Color(hex: "1E293B")
         }
         return LazyVGrid(
-            columns: [GridItem(.fixed(10)), GridItem(.fixed(10))],
+            columns: [GridItem(.fixed(14)), GridItem(.fixed(14))],
             spacing: 4
         ) {
             ForEach(0..<total, id: \.self) { i in
                 Circle()
                     .fill(colors[i])
-                    .overlay(Circle().stroke(Color(hex: "334155"), lineWidth: 0.5))
-                    .frame(width: 8, height: 8)
+                    .overlay(Circle().stroke(Color(hex: "475569"), lineWidth: 0.5))
+                    .frame(width: 12, height: 12)
             }
         }
-        .frame(width: 28)
+        .frame(width: 36)
     }
 
     // MARK: - Color Palette
