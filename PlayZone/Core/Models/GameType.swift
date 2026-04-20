@@ -52,14 +52,14 @@ enum GameType: String, CaseIterable, Codable, Identifiable {
         case .nonogram:    return "square.grid.2x2.fill"
         case .lightsOut:   return "lightbulb.fill"
         case .puzzle15:    return "number.square.fill"
-        case .tetris:      return "square.3.layers.3d"
+        case .tetris:      return "tetris"
         case .mastermind:  return "circle.grid.2x2.fill"
         }
     }
 
     var isCustomIcon: Bool {
         switch self {
-        case .snake, .breakout, .minesweeper, .sudoku, .memory:
+        case .snake, .breakout, .minesweeper, .sudoku, .memory, .tetris:
             return true
         default:
             return false
@@ -110,8 +110,8 @@ enum GameType: String, CaseIterable, Codable, Identifiable {
              .nonogram, .breakout, .puzzle15: return .time
         case .game2048, .snake, .colorMatch,
              .spellingBee, .tetris, .mastermind: return .score
-        case .wordle:                         return .streak
-        case .lightsOut:                      return .moves
+        case .wordle:                            return .streak
+        case .lightsOut:                         return .moves
         }
     }
 
@@ -129,9 +129,9 @@ enum GameType: String, CaseIterable, Codable, Identifiable {
         case .minesweeper, .sudoku, .game2048,
              .nonogram, .lightsOut, .puzzle15: return .logic
         case .wordle, .spellingBee:            return .words
-        case .snake, .breakout, .tetris:        return .arcade
-        case .mastermind:                       return .logic
+        case .snake, .breakout, .tetris:       return .arcade
         case .memory, .colorMatch:             return .memory
+        case .mastermind:                      return .logic
         }
     }
 
