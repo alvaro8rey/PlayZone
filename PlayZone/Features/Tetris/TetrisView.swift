@@ -245,7 +245,7 @@ struct TetrisView: View {
         VStack(spacing: 10) {
             HStack(spacing: 10) {
                 controlBtn("arrow.left", wide: false) { game.moveLeft() }
-                controlBtn("arrow.counterclockwise", wide: false) { game.rotate() }
+                controlBtn("arrow.clockwise", wide: false) { game.rotate() }
                 controlBtn("arrow.down", wide: false) { game.softDrop() }
                 controlBtn("arrow.right", wide: false) { game.moveRight() }
             }
