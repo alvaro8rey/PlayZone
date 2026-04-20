@@ -284,9 +284,6 @@ struct SpellingBeeView: View {
             actionBtn("Mezclar", color: Color(hex: "3B82F6")) {
                 game.shuffle()
             }
-            actionBtn("Enviar", color: Color(hex: "22C55E")) {
-                handleSubmit()
-            }
         }
     }
 
