@@ -99,6 +99,8 @@ extension GameType {
             return "Desliza las fichas numeradas al hueco vacío para ordenarlas de menor a mayor de izquierda a derecha y de arriba a abajo, dejando el hueco en la última posición. Solo puedes mover fichas adyacentes al hueco. Complétalo lo más rápido posible."
         case .tetris:
             return "Las piezas caen desde arriba. Usa los botones para moverlas izquierda/derecha, rotarlas o bajarlas. Pulsa la flecha doble para dejarlas caer al instante. Cuando una fila se rellena completamente, desaparece y sumas puntos. ¡El juego termina si las piezas llegan arriba!"
+        case .mastermind:
+            return "Hay un código secreto de \(4) colores (5 en difícil). Elige colores en la fila activa y pulsa Confirmar. Tras cada intento verás pistas: círculo blanco = color correcto en posición correcta · círculo gris = color correcto en posición incorrecta. Sin pistas = ese color no aparece."
         }
     }
 
@@ -130,6 +132,8 @@ extension GameType {
             return "Se registra el tiempo total que tardas en ordenar todas las fichas correctamente. Cuanto menos tardes, mejor tu posición. Tu mejor marca se guarda por dificultad (8, 15 y 24-puzzle)."
         case .tetris:
             return "La puntuación depende de cuántas líneas completes a la vez: 1 línea = 100 pts, 2 = 300, 3 = 500, 4 (Tetris) = 800. Todo multiplicado por el nivel actual. Se guarda la puntuación más alta por dificultad."
+        case .mastermind:
+            return "Cuantos menos intentos uses para resolver el código, mayor es tu puntuación. El máximo son (intentos máximos × 100) puntos si lo resuelves a la primera. Cada intento adicional reduce la puntuación en 100 pts. Solo se guarda puntuación si resuelves el código."
         }
     }
 }

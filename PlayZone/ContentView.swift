@@ -14,6 +14,7 @@ enum Route: Hashable {
     case lightsOut(Difficulty)
     case puzzle15(Difficulty)
     case tetris(Difficulty)
+    case mastermind(Difficulty)
     case ranking(GameType)
 }
 
@@ -40,6 +41,7 @@ struct ContentView: View {
                     case .lightsOut(let d):   LightsOutView(difficulty: d, path: $path)
                     case .puzzle15(let d):    FifteenPuzzleView(difficulty: d, path: $path)
                     case .tetris(let d):      TetrisView(difficulty: d, path: $path)
+                    case .mastermind(let d):  MastermindView(difficulty: d, path: $path)
                     case .ranking(let g):     RankingView(game: g)
                     }
                 }

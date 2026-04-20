@@ -304,6 +304,7 @@ struct FeaturedCard: View {
         case .lightsOut:   path.append(Route.lightsOut(difficulty))
         case .puzzle15:    path.append(Route.puzzle15(difficulty))
         case .tetris:      path.append(Route.tetris(difficulty))
+        case .mastermind:  path.append(Route.mastermind(difficulty))
         }
     }
 }
@@ -414,6 +415,7 @@ struct GameCard: View {
         case .lightsOut:   path.append(Route.lightsOut(difficulty))
         case .puzzle15:    path.append(Route.puzzle15(difficulty))
         case .tetris:      path.append(Route.tetris(difficulty))
+        case .mastermind:  path.append(Route.mastermind(difficulty))
         }
     }
 }

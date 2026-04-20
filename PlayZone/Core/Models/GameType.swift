@@ -34,6 +34,7 @@ enum GameType: String, CaseIterable, Codable, Identifiable {
     case lightsOut   = "Lights Out"
     case puzzle15    = "Puzzle 15"
     case tetris      = "Tetris"
+    case mastermind  = "Mastermind"
 
     var id: String { rawValue }
 
@@ -52,6 +53,7 @@ enum GameType: String, CaseIterable, Codable, Identifiable {
         case .lightsOut:   return "lightbulb.fill"
         case .puzzle15:    return "number.square.fill"
         case .tetris:      return "square.3.layers.3d"
+        case .mastermind:  return "circle.grid.2x2.fill"
         }
     }
 
@@ -79,6 +81,7 @@ enum GameType: String, CaseIterable, Codable, Identifiable {
         case .lightsOut:   return "Apaga todas las luces en el menor número de movimientos"
         case .puzzle15:    return "Ordena las fichas deslizándolas al hueco vacío"
         case .tetris:      return "Encaja las piezas y completa líneas horizontales"
+        case .mastermind:  return "Descifra el código secreto de colores"
         }
     }
 
@@ -97,6 +100,7 @@ enum GameType: String, CaseIterable, Codable, Identifiable {
         case .lightsOut:   return [Color(hex: "FBBF24"), Color(hex: "D97706")]
         case .puzzle15:    return [Color(hex: "06B6D4"), Color(hex: "0E7490")]
         case .tetris:      return [Color(hex: "A855F7"), Color(hex: "6D28D9")]
+        case .mastermind:  return [Color(hex: "EC4899"), Color(hex: "8B5CF6")]
         }
     }
 
@@ -105,7 +109,7 @@ enum GameType: String, CaseIterable, Codable, Identifiable {
         case .minesweeper, .sudoku, .memory,
              .nonogram, .breakout, .puzzle15: return .time
         case .game2048, .snake, .colorMatch,
-             .spellingBee, .tetris:           return .score
+             .spellingBee, .tetris, .mastermind: return .score
         case .wordle:                         return .streak
         case .lightsOut:                      return .moves
         }
@@ -125,7 +129,8 @@ enum GameType: String, CaseIterable, Codable, Identifiable {
         case .minesweeper, .sudoku, .game2048,
              .nonogram, .lightsOut, .puzzle15: return .logic
         case .wordle, .spellingBee:            return .words
-        case .snake, .breakout, .tetris:       return .arcade
+        case .snake, .breakout, .tetris:        return .arcade
+        case .mastermind:                       return .logic
         case .memory, .colorMatch:             return .memory
         }
     }
