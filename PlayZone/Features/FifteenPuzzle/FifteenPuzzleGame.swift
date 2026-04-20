@@ -52,7 +52,7 @@ final class FifteenPuzzleGame {
 
         // Shuffle by applying random valid moves from the solved state → always solvable
         var emptyIdx = count - 1
-        for _ in 0..<(count * 60) {
+        for _ in 0..<(count * 200) {
             let emptyRow = emptyIdx / size, emptyCol = emptyIdx % size
             var neighbors: [Int] = []
             if emptyRow > 0          { neighbors.append(emptyIdx - size) }

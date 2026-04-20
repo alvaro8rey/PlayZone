@@ -89,7 +89,7 @@ final class MastermindGame {
         if b == codeLength {
             stopTimer()
             // Base score separada por 10000 por intento (nunca se solapan en tiempo razonable)
-            score = (maxAttempts - rows.count + 1) * 10000 - elapsedSeconds
+            score = max(0, (maxAttempts - rows.count + 1) * 10000 - elapsedSeconds)
             state = .won
         } else if rows.count >= maxAttempts {
             stopTimer()

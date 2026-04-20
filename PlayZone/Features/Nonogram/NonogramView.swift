@@ -34,33 +34,42 @@ struct NonogramView: View {
         ZStack {
             Color(hex: "0F172A").ignoresSafeArea()
 
-            VStack(spacing: 8) {
-                hud
-
-                // Puzzle + pan arrow overlay
-                GeometryReader { geo in
-                    puzzle(in: geo.size)
-                        .frame(width: geo.size.width, height: geo.size.height, alignment: .center)
-                        .scaleEffect(zoomScale, anchor: .center)
-                        .offset(panOffset)
-                        .clipped()
-                        .onAppear            { geoSize = geo.size }
-                        .onChange(of: geo.size) { _, s in geoSize = s }
+            if game.isLoading {
+                VStack(spacing: 16) {
+                    ProgressView().tint(.white).scaleEffect(1.4)
+                    Text("Generando nonograma…")
+                        .font(.subheadline)
+                        .foregroundStyle(Color(hex: "94A3B8"))
                 }
-                .overlay {
-                    if zoomScale > 1.0 {
-                        panArrowsOverlay
-                            .transition(.opacity)
-                            .animation(.easeInOut(duration: 0.2), value: zoomScale > 1.0)
+            } else {
+                VStack(spacing: 8) {
+                    hud
+
+                    GeometryReader { geo in
+                        puzzle(in: geo.size)
+                            .frame(width: geo.size.width, height: geo.size.height, alignment: .center)
+                            .scaleEffect(zoomScale, anchor: .center)
+                            .offset(panOffset)
+                            .clipped()
+                            .onAppear            { geoSize = geo.size }
+                            .onChange(of: geo.size) { _, s in geoSize = s }
                     }
-                }
+                    .overlay {
+                        if zoomScale > 1.0 {
+                            panArrowsOverlay
+                                .transition(.opacity)
+                                .animation(.easeInOut(duration: 0.2), value: zoomScale > 1.0)
+                        }
+                    }
 
-                zoomBar
+                    zoomBar
+                }
+                .padding(.horizontal, 12)
+                .padding(.top, 8)
+                .padding(.bottom, 8)
             }
-            .padding(.horizontal, 12)
-            .padding(.top, 8)
-            .padding(.bottom, 8)
         }
+        .task { await game.load() }
         .background(SwipeBackDisabler())
         .overlay {
             if navigatedToRanking {
