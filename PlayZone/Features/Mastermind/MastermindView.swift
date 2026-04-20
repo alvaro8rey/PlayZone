@@ -13,7 +13,11 @@ struct MastermindView: View {
     @AppStorage("playerName") private var playerName = ""
 
     private var pegSize: CGFloat { game.codeLength == 5 ? 34 : 40 }
-    private var potentialScore: Int { (game.maxAttempts - game.rows.count) * 100 }
+    private var potentialScore: Int { (game.maxAttempts - game.rows.count) * 10000 - game.elapsedSeconds }
+
+    private func formattedTime(_ s: Int) -> String {
+        String(format: "%02d:%02d", s / 60, s % 60)
+    }
 
     init(difficulty: Difficulty, path: Binding<NavigationPath>) {
         self.difficulty = difficulty
@@ -85,8 +89,8 @@ struct MastermindView: View {
         } message: {
             if game.state == .won {
                 Text(isNewRecord
-                     ? "🏆 ¡Nuevo récord!  \(game.score) pts en \(game.rows.count) intentos"
-                     : "Resuelta en \(game.rows.count) intentos · \(game.score) pts")
+                     ? "🏆 ¡Nuevo récord!  \(game.rows.count) intentos · \(formattedTime(game.elapsedSeconds))"
+                     : "Resuelta en \(game.rows.count) intentos · \(formattedTime(game.elapsedSeconds))")
             } else {
                 Text("La clave era: " + game.secret.map { $0.emoji }.joined())
             }
@@ -104,18 +108,24 @@ struct MastermindView: View {
                     .foregroundStyle(.white)
             }
             Spacer()
+            VStack(spacing: 2) {
+                Text("Tiempo").font(.caption.bold()).foregroundStyle(Color(hex: "94A3B8"))
+                Text(formattedTime(game.elapsedSeconds))
+                    .font(.headline.bold().monospacedDigit())
+                    .foregroundStyle(.white)
+            }
+            Spacer()
             if game.state == .playing {
-                VStack(spacing: 2) {
-                    Text("Si aciertas ahora").font(.caption.bold()).foregroundStyle(Color(hex: "94A3B8"))
-                    Text("\(potentialScore) pts")
+                VStack(alignment: .trailing, spacing: 2) {
+                    Text("Máx. ahora").font(.caption.bold()).foregroundStyle(Color(hex: "94A3B8"))
+                    Text("\(potentialScore)")
                         .font(.headline.bold().monospacedDigit())
                         .foregroundStyle(Color(hex: "EC4899"))
                 }
             }
-            Spacer()
             Button { game.reset() } label: {
                 Image(systemName: "arrow.counterclockwise.circle.fill")
-                    .font(.title2).foregroundStyle(.white)
+                    .font(.title2).foregroundStyle(.white).padding(.leading, 12)
             }
         }
     }

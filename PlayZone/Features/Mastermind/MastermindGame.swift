@@ -56,6 +56,10 @@ final class MastermindGame {
     private(set) var current: [PegColor?] = []
     private(set) var state: MastermindState = .playing
     private(set) var score: Int = 0
+    private(set) var elapsedSeconds: Int = 0
+
+    private var timer: Timer?
+    private var timerStarted = false
 
     var attemptsLeft: Int { maxAttempts - rows.count }
     var canSubmit: Bool { current.allSatisfy { $0 != nil } && state == .playing }
@@ -68,6 +72,7 @@ final class MastermindGame {
     func tapColor(_ color: PegColor) {
         guard state == .playing else { return }
         guard let idx = current.firstIndex(where: { $0 == nil }) else { return }
+        if !timerStarted { startTimer() }
         current[idx] = color
     }
 
@@ -82,9 +87,12 @@ final class MastermindGame {
         let (b, w) = evaluate(guess)
         rows.append(MastermindRow(pegs: current, blacks: b, whites: w))
         if b == codeLength {
-            score = (maxAttempts - rows.count + 1) * 100
+            stopTimer()
+            // Base score separada por 10000 por intento (nunca se solapan en tiempo razonable)
+            score = (maxAttempts - rows.count + 1) * 10000 - elapsedSeconds
             state = .won
         } else if rows.count >= maxAttempts {
+            stopTimer()
             state = .lost
         } else {
             current = Array(repeating: nil, count: codeLength)
@@ -94,6 +102,9 @@ final class MastermindGame {
     func reset() { setup() }
 
     private func setup() {
+        stopTimer()
+        timerStarted = false
+        elapsedSeconds = 0
         if allowRepeats {
             secret = (0..<codeLength).map { _ in PegColor.allCases.randomElement()! }
         } else {
@@ -103,6 +114,18 @@ final class MastermindGame {
         rows = []
         state = .playing
         score = 0
+    }
+
+    private func startTimer() {
+        timerStarted = true
+        timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
+            self?.elapsedSeconds += 1
+        }
+    }
+
+    private func stopTimer() {
+        timer?.invalidate()
+        timer = nil
     }
 
     private func evaluate(_ guess: [PegColor]) -> (Int, Int) {
