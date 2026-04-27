@@ -1,0 +1,146 @@
+import SwiftUI
+
+enum RankingType { case time, score, streak, moves }
+
+enum GameCategory: String, CaseIterable {
+    case all     = "Todos"
+    case logic   = "Lógica"
+    case words   = "Palabras"
+    case arcade  = "Arcade"
+    case memory  = "Memoria"
+
+    var icon: String {
+        switch self {
+        case .all:    return "square.grid.2x2.fill"
+        case .logic:  return "puzzlepiece.fill"
+        case .words:  return "textformat.abc"
+        case .arcade: return "gamecontroller.fill"
+        case .memory: return "brain.head.profile"
+        }
+    }
+}
+
+enum GameType: String, CaseIterable, Codable, Identifiable {
+    case minesweeper = "Buscaminas"
+    case sudoku      = "Sudoku"
+    case game2048    = "2048"
+    case memory      = "Memoria"
+    case snake       = "Snake"
+    case wordle      = "Wordle"
+    case breakout    = "Breakout"
+    case colorMatch  = "Color Mix"
+    case spellingBee = "Spelling Bee"
+    case nonogram    = "Nonograma"
+    case lightsOut   = "Lights Out"
+    case puzzle15    = "Puzzle 15"
+    case tetris      = "Tetris"
+    case mastermind  = "Mastermind"
+
+    var id: String { rawValue }
+
+    var icon: String {
+        switch self {
+        case .minesweeper: return "minesweeper"
+        case .sudoku:      return "sudoku"
+        case .game2048:    return "square.stack.fill"
+        case .memory:      return "memory"
+        case .snake:       return "snake"
+        case .wordle:      return "textformat.abc"
+        case .breakout:    return "breakout"
+        case .colorMatch:  return "paintpalette.fill"
+        case .spellingBee: return "hexagon.fill"
+        case .nonogram:    return "square.grid.2x2.fill"
+        case .lightsOut:   return "lightbulb.fill"
+        case .puzzle15:    return "number.square.fill"
+        case .tetris:      return "tetris"
+        case .mastermind:  return "circle.grid.2x2.fill"
+        }
+    }
+
+    var isCustomIcon: Bool {
+        switch self {
+        case .snake, .breakout, .minesweeper, .sudoku, .memory, .tetris:
+            return true
+        default:
+            return false
+        }
+    }
+
+    var description: String {
+        switch self {
+        case .minesweeper: return "Descubre el campo sin explotar las minas"
+        case .sudoku:      return "Rellena el tablero con números del 1 al 9"
+        case .game2048:    return "Combina fichas para llegar al 2048"
+        case .memory:      return "Encuentra todas las parejas de cartas"
+        case .snake:       return "Guía la serpiente y come sin chocar"
+        case .wordle:      return "Adivina la palabra oculta en 6 intentos"
+        case .breakout:    return "Destruye todos los bloques con la pelota"
+        case .colorMatch:  return "Mezcla RGB para igualar el color objetivo"
+        case .spellingBee: return "Forma palabras de 5 letras con el panal"
+        case .nonogram:    return "Rellena la cuadrícula siguiendo las pistas"
+        case .lightsOut:   return "Apaga todas las luces en el menor número de movimientos"
+        case .puzzle15:    return "Ordena las fichas deslizándolas al hueco vacío"
+        case .tetris:      return "Encaja las piezas y completa líneas horizontales"
+        case .mastermind:  return "Descifra el código secreto de colores"
+        }
+    }
+
+    var color: Color {
+        switch self {
+        case .minesweeper: return Color(hex: "22C55E")
+        case .sudoku:      return Color(hex: "3B82F6")
+        case .game2048:    return Color(hex: "F97316")
+        case .memory:      return Color(hex: "A855F7")
+        case .snake:       return Color(hex: "14B8A6")
+        case .wordle:      return Color(hex: "F59E0B")
+        case .breakout:    return Color(hex: "EC4899")
+        case .colorMatch:  return Color(hex: "F43F5E")
+        case .spellingBee: return Color(hex: "EAB308")
+        case .nonogram:    return Color(hex: "6366F1")
+        case .lightsOut:   return Color(hex: "FBBF24")
+        case .puzzle15:    return Color(hex: "06B6D4")
+        case .tetris:      return Color(hex: "A855F7")
+        case .mastermind:  return Color(hex: "EC4899")
+        }
+    }
+
+    var rankingType: RankingType {
+        switch self {
+        case .minesweeper, .sudoku, .memory,
+             .nonogram, .breakout, .puzzle15: return .time
+        case .game2048, .snake, .colorMatch,
+             .spellingBee, .tetris, .mastermind: return .score
+        case .wordle:                            return .streak
+        case .lightsOut:                         return .moves
+        }
+    }
+
+    var rankingLabel: String {
+        switch rankingType {
+        case .time:   return "Menor tiempo"
+        case .score:  return "Mayor puntuación"
+        case .streak: return "Mejor racha"
+        case .moves:  return "Menos movimientos"
+        }
+    }
+
+    var category: GameCategory {
+        switch self {
+        case .minesweeper, .sudoku, .game2048,
+             .nonogram, .lightsOut, .puzzle15: return .logic
+        case .wordle, .spellingBee:            return .words
+        case .snake, .breakout, .tetris:       return .arcade
+        case .memory, .colorMatch:             return .memory
+        case .mastermind:                      return .logic
+        }
+    }
+
+    var rankingIcon: String {
+        switch rankingType {
+        case .time:   return "timer"
+        case .score:  return "star.fill"
+        case .streak: return "flame.fill"
+        case .moves:  return "hand.tap.fill"
+        }
+    }
+}
