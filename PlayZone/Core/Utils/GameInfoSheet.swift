@@ -15,10 +15,7 @@ struct GameInfoSheet: View {
                     HStack(spacing: 14) {
                         Image(systemName: game.icon)
                             .font(.system(size: 36, weight: .semibold))
-                            .foregroundStyle(
-                                LinearGradient(colors: game.gradient,
-                                               startPoint: .topLeading,
-                                               endPoint: .bottomTrailing))
+                            .foregroundStyle(game.color)
                         Text(game.rawValue)
                             .font(.title.bold())
                     }

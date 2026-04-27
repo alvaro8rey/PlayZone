@@ -167,9 +167,7 @@ struct ColorMatchView: View {
                 .font(.headline.bold())
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 16)
-                .background(LinearGradient(
-                    colors: [Color(hex: "6366F1"), Color(hex: "8B5CF6")],
-                    startPoint: .leading, endPoint: .trailing))
+                .background(Color(hex: "6366F1"))
                 .foregroundStyle(.white)
                 .clipShape(RoundedRectangle(cornerRadius: 14))
         }
@@ -236,9 +234,7 @@ struct ColorMatchView: View {
                 .font(.headline.bold())
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 16)
-                .background(LinearGradient(
-                    colors: [Color(hex: "6366F1"), Color(hex: "8B5CF6")],
-                    startPoint: .leading, endPoint: .trailing))
+                .background(Color(hex: "6366F1"))
                 .foregroundStyle(.white)
                 .clipShape(RoundedRectangle(cornerRadius: 14))
         }
@@ -317,9 +313,7 @@ struct ColorMatchSummarySheet: View {
                             .font(.headline.bold())
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 14)
-                            .background(LinearGradient(
-                                colors: [Color(hex: "F43F5E"), Color(hex: "8B5CF6")],
-                                startPoint: .leading, endPoint: .trailing))
+                            .background(Color(hex: "F43F5E"))
                             .foregroundStyle(.white)
                             .clipShape(RoundedRectangle(cornerRadius: 12))
                     }

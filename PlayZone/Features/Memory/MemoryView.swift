@@ -28,9 +28,7 @@ struct MemoryView: View {
 
     var body: some View {
         ZStack {
-            LinearGradient(colors: [Color(hex: "1A0533"), Color(hex: "0F172A")],
-                           startPoint: .top, endPoint: .bottom)
-                .ignoresSafeArea()
+            Color(hex: "0F172A").ignoresSafeArea()
 
             VStack(spacing: 16) {
                 statsRow
@@ -139,15 +137,13 @@ struct MemoryCardView: View {
         ZStack {
             if card.isFaceUp || card.isMatched {
                 RoundedRectangle(cornerRadius: 12)
-                    .fill(card.isMatched
-                          ? LinearGradient(colors: [Color(hex: "6D28D9"), Color(hex: "A855F7")], startPoint: .topLeading, endPoint: .bottomTrailing)
-                          : LinearGradient(colors: [Color(hex: "4C1D95"), Color(hex: "7C3AED")], startPoint: .topLeading, endPoint: .bottomTrailing))
+                    .fill(card.isMatched ? Color(hex: "A855F7") : Color(hex: "7C3AED"))
                 Image(systemName: card.symbol)
                     .font(.system(size: 40, weight: .semibold))
                     .foregroundStyle(.white)
             } else {
                 RoundedRectangle(cornerRadius: 12)
-                    .fill(LinearGradient(colors: [Color(hex: "1E293B"), Color(hex: "334155")], startPoint: .topLeading, endPoint: .bottomTrailing))
+                    .fill(Color(hex: "1E293B"))
                 Image(systemName: "questionmark")
                     .font(.title2.bold())
                     .foregroundStyle(Color(hex: "475569"))

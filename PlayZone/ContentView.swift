@@ -66,7 +66,7 @@ struct NamePromptView: View {
         VStack(spacing: 28) {
             Image(systemName: "gamecontroller.fill")
                 .font(.system(size: 56))
-                .foregroundStyle(LinearGradient(colors: [.purple, .blue], startPoint: .topLeading, endPoint: .bottomTrailing))
+                .foregroundStyle(Color(hex: "6366F1"))
 
             Text("¡Bienvenido a PlayZone!")
                 .font(.title2.bold())
@@ -89,7 +89,7 @@ struct NamePromptView: View {
                     .font(.headline)
                     .frame(maxWidth: .infinity)
                     .padding()
-                    .background(LinearGradient(colors: [.purple, .blue], startPoint: .leading, endPoint: .trailing))
+                    .background(Color(hex: "6366F1"))
                     .foregroundStyle(.white)
                     .clipShape(RoundedRectangle(cornerRadius: 14))
                     .padding(.horizontal)

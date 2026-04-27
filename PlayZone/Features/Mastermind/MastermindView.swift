@@ -27,9 +27,7 @@ struct MastermindView: View {
 
     var body: some View {
         ZStack {
-            LinearGradient(colors: [Color(hex: "1A0F2E"), Color(hex: "0F172A")],
-                           startPoint: .top, endPoint: .bottom)
-                .ignoresSafeArea()
+            Color(hex: "0F172A").ignoresSafeArea()
 
             VStack(spacing: 0) {
                 statsRow

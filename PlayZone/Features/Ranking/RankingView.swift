@@ -10,9 +10,7 @@ struct RankingView: View {
 
     var body: some View {
         ZStack {
-            LinearGradient(colors: [Color(hex: "0F172A"), Color(hex: "1E293B")],
-                           startPoint: .top, endPoint: .bottom)
-                .ignoresSafeArea()
+            Color(hex: "0F172A").ignoresSafeArea()
 
             VStack(spacing: 0) {
                 difficultyPicker
@@ -54,11 +52,7 @@ struct RankingView: View {
                         .foregroundStyle(selectedDifficulty == diff ? .white : Color(hex: "64748B"))
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 10)
-                        .background(
-                            selectedDifficulty == diff
-                            ? LinearGradient(colors: game.gradient, startPoint: .leading, endPoint: .trailing)
-                            : LinearGradient(colors: [Color.clear], startPoint: .leading, endPoint: .trailing)
-                        )
+                        .background(selectedDifficulty == diff ? game.color : Color.clear)
                 }
             }
         }
@@ -76,7 +70,7 @@ struct RankingView: View {
             if let pos = myPosition {
                 Text("Tu posición: #\(pos)")
                     .fontWeight(.semibold)
-                    .foregroundStyle(game.gradient.first ?? .white)
+                    .foregroundStyle(game.color)
             }
         }
         .font(.caption)
@@ -197,7 +191,7 @@ struct RankingRow: View {
 
             Text(entry.formattedValue)
                 .font(.title3.bold().monospacedDigit())
-                .foregroundStyle(game.gradient.first ?? .white)
+                .foregroundStyle(game.color)
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 12)

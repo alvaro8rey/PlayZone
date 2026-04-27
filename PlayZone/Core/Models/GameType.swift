@@ -85,22 +85,22 @@ enum GameType: String, CaseIterable, Codable, Identifiable {
         }
     }
 
-    var gradient: [Color] {
+    var color: Color {
         switch self {
-        case .minesweeper: return [Color(hex: "22C55E"), Color(hex: "15803D")]
-        case .sudoku:      return [Color(hex: "3B82F6"), Color(hex: "1E40AF")]
-        case .game2048:    return [Color(hex: "F97316"), Color(hex: "C2410C")]
-        case .memory:      return [Color(hex: "A855F7"), Color(hex: "6D28D9")]
-        case .snake:       return [Color(hex: "14B8A6"), Color(hex: "0F766E")]
-        case .wordle:      return [Color(hex: "F59E0B"), Color(hex: "B45309")]
-        case .breakout:    return [Color(hex: "EC4899"), Color(hex: "9D174D")]
-        case .colorMatch:  return [Color(hex: "F43F5E"), Color(hex: "8B5CF6")]
-        case .spellingBee: return [Color(hex: "EAB308"), Color(hex: "92400E")]
-        case .nonogram:    return [Color(hex: "6366F1"), Color(hex: "4338CA")]
-        case .lightsOut:   return [Color(hex: "FBBF24"), Color(hex: "D97706")]
-        case .puzzle15:    return [Color(hex: "06B6D4"), Color(hex: "0E7490")]
-        case .tetris:      return [Color(hex: "A855F7"), Color(hex: "6D28D9")]
-        case .mastermind:  return [Color(hex: "EC4899"), Color(hex: "8B5CF6")]
+        case .minesweeper: return Color(hex: "22C55E")
+        case .sudoku:      return Color(hex: "3B82F6")
+        case .game2048:    return Color(hex: "F97316")
+        case .memory:      return Color(hex: "A855F7")
+        case .snake:       return Color(hex: "14B8A6")
+        case .wordle:      return Color(hex: "F59E0B")
+        case .breakout:    return Color(hex: "EC4899")
+        case .colorMatch:  return Color(hex: "F43F5E")
+        case .spellingBee: return Color(hex: "EAB308")
+        case .nonogram:    return Color(hex: "6366F1")
+        case .lightsOut:   return Color(hex: "FBBF24")
+        case .puzzle15:    return Color(hex: "06B6D4")
+        case .tetris:      return Color(hex: "A855F7")
+        case .mastermind:  return Color(hex: "EC4899")
         }
     }
 

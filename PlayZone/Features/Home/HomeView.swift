@@ -23,9 +23,7 @@ struct HomeView: View {
 
     var body: some View {
         ZStack {
-            LinearGradient(colors: [Color(hex: "0F172A"), Color(hex: "1E293B")],
-                           startPoint: .top, endPoint: .bottom)
-                .ignoresSafeArea()
+            Color(hex: "0F172A").ignoresSafeArea()
 
             ScrollViewReader { proxy in
                 ScrollView {
@@ -60,8 +58,7 @@ struct HomeView: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text("PlayZone")
                     .font(.largeTitle.bold())
-                    .foregroundStyle(LinearGradient(colors: [.white, Color(hex: "94A3B8")],
-                                                   startPoint: .leading, endPoint: .trailing))
+                    .foregroundStyle(.white)
                 Text("Hola, \(playerName) 👋")
                     .font(.subheadline)
                     .foregroundStyle(Color(hex: "94A3B8"))
@@ -208,8 +205,7 @@ struct FeaturedCard: View {
                 }
             } label: {
                 ZStack(alignment: .leading) {
-                    LinearGradient(colors: game.gradient,
-                                   startPoint: .topLeading, endPoint: .bottomTrailing)
+                    game.color
                     HStack(spacing: 16) {
                         GameIconView(game: game, size: 52)
                             .frame(width: 70)
@@ -239,7 +235,7 @@ struct FeaturedCard: View {
                 }
                 .clipShape(RoundedRectangle(cornerRadius: 20))
             }
-            .shadow(color: game.gradient.first!.opacity(0.4), radius: 8, y: 4)
+            .shadow(color: game.color.opacity(0.4), radius: 8, y: 4)
 
             if expanded { difficultyPicker }
         }
@@ -327,7 +323,7 @@ struct GameCard: View {
                 }
             } label: {
                 ZStack {
-                    LinearGradient(colors: game.gradient, startPoint: .topLeading, endPoint: .bottomTrailing)
+                    game.color
                     VStack(spacing: 12) {
                         GameIconView(game: game, size: 38)
                             .frame(height: 40)
@@ -352,7 +348,7 @@ struct GameCard: View {
                 }
                 .clipShape(RoundedRectangle(cornerRadius: 20))
             }
-            .shadow(color: game.gradient.first!.opacity(0.4), radius: 8, y: 4)
+            .shadow(color: game.color.opacity(0.4), radius: 8, y: 4)
 
             if expanded {
                 VStack(spacing: 8) {
