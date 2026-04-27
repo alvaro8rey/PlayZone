@@ -128,6 +128,8 @@ final class MastermindGame {
         timer = nil
     }
 
+    deinit { timer?.invalidate() }
+
     private func evaluate(_ guess: [PegColor]) -> (Int, Int) {
         var blacks = 0
         var secretRem: [PegColor] = []

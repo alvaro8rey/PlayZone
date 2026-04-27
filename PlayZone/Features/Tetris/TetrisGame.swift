@@ -310,4 +310,6 @@ final class TetrisGame {
         if bag.isEmpty { bag = TetrominoType.allCases.shuffled() }
         return bag.removeLast()
     }
+
+    deinit { timer?.invalidate() }
 }

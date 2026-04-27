@@ -108,6 +108,8 @@ final class SudokuGame {
 
     func stopTimer() { timer?.invalidate(); timer = nil }
 
+    deinit { timer?.invalidate() }
+
     private func startTimer() {
         elapsedSeconds = 0
         finalMilliseconds = 0
